@@ -1,0 +1,20 @@
+{
+    "configurations": [
+        {
+            "name": "STM32F405",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [
+                "STM32F405xx",
+                "DEBUG",
+                "__ARM_FEATURE_DSP=1"
+            ],
+            "compilerPath": "/usr/bin/arm-none-eabi-gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "gcc-arm"
+        }
+    ],
+    "version": 4
+}
