@@ -6,4 +6,6 @@
 
 extern void audio_init(void);
 
+extern void audio_process(void);
+
 #endif

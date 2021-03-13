@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <math.h>
 
 #include "stm32f4xx.h"
@@ -22,6 +21,8 @@ int main(void)
 
 	while (1)
 	{
+		audio_process();
+
 #ifdef PERFMON
 		uint32_t sleep_start;
 		static uint32_t sleep_end = 0;

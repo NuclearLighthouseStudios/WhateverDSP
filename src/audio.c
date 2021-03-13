@@ -12,6 +12,7 @@ int32_t i2s_dac_buffer[2][BUFSIZE * 2];
 float in_buffer[2][BUFSIZE];
 float out_buffer[2][BUFSIZE];
 
+volatile bool adc_ready = false;
 volatile bool dsp_ready = false;
 volatile bool dac_empty = false;
 
@@ -42,18 +43,7 @@ void DMA1_Stream0_IRQHandler(void)
 	audio_transfer_in(!READ_BIT(DMA1_Stream0->CR, DMA_SxCR_CT));
 
 	dsp_ready = false;
-
-	dsp_process(in_buffer, out_buffer);
-
-	if (dac_empty)
-	{
-		audio_transfer_out(!READ_BIT(DMA1_Stream4->CR, DMA_SxCR_CT));
-		dac_empty = false;
-	}
-	else
-	{
-		dsp_ready = true;
-	}
+	adc_ready = true;
 }
 
 void DMA1_Stream4_IRQHandler(void)
@@ -68,6 +58,26 @@ void DMA1_Stream4_IRQHandler(void)
 	else
 	{
 		dac_empty = true;
+	}
+}
+
+void audio_process(void)
+{
+	if (adc_ready)
+	{
+		adc_ready = false;
+
+		dsp_process(in_buffer, out_buffer);
+
+		if (dac_empty)
+		{
+			audio_transfer_out(!READ_BIT(DMA1_Stream4->CR, DMA_SxCR_CT));
+			dac_empty = false;
+		}
+		else
+		{
+			dsp_ready = true;
+		}
 	}
 }
 
