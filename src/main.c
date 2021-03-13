@@ -7,6 +7,7 @@
 #include "io.h"
 #include "audio.h"
 #include "midi.h"
+#include "dsp.h"
 
 #ifdef DEBUG
 // #define PERFMON
@@ -20,6 +21,8 @@ int main(void)
 	midi_init();
 
 	puts("Hey there! {^-^}~");
+
+	dsp_init();
 
 	while (1)
 	{
