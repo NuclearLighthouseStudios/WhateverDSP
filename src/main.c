@@ -6,6 +6,7 @@
 #include "system.h"
 #include "io.h"
 #include "audio.h"
+#include "midi.h"
 
 #ifdef DEBUG
 // #define PERFMON
@@ -16,6 +17,7 @@ int main(void)
 	sys_init();
 	io_init();
 	audio_init();
+	midi_init();
 
 	puts("Hey there! {^-^}~");
 

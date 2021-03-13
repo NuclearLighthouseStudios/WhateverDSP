@@ -40,6 +40,7 @@ src/main.c \
 src/system.c \
 src/io.c\
 src/audio.c\
+src/midi.c\
 src/dsp.c
 
 # ASM sources
