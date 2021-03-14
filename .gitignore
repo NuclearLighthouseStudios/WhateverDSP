@@ -1,5 +1,3 @@
-**/.vscode/.*
-
 build/
 libwdsp.a
 
@@ -10,3 +8,5 @@ examples/**/*
 examples/**/*.bin
 examples/**/*.hex
 examples/**/*.map
+
+**/.vscode/.*
