@@ -6,7 +6,7 @@
 	"configurations": [
 		{
 			"cwd": "${workspaceRoot}",
-			"executable": "${workspaceFolder}/build/whateverdsp.elf",
+			"executable": "${workspaceFolder}/so-666",
 			"name": "Debug with OpenOCD",
 			"request": "launch",
 			"type": "cortex-debug",
@@ -14,12 +14,12 @@
 			"runToMain": true,
 			"interface": "swd",
 			"device": "STM32F405rgtx",
-			"svdFile": ".vscode/STM32F405.svd",
+			"svdFile": "../svds/STM32F405.svd",
 			"configFiles": [
 				"interface/stlink.cfg",
 				"target/stm32f4x.cfg"
 			],
-			"preLaunchTask": "Make Debug",
+			"preLaunchTask": "Make",
 			"postLaunchCommands": [
 				"monitor arm semihosting enable"
 			]

@@ -7,9 +7,9 @@
 
 #define MQ_LENGTH 16
 
-midi_message message_queue[MQ_LENGTH];
-int mq_read_pos = 0;
-int mq_write_pos = 0;
+static midi_message message_queue[MQ_LENGTH];
+static int mq_read_pos = 0;
+static int mq_write_pos = 0;
 
 void USART1_IRQHandler(void)
 {

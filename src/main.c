@@ -7,11 +7,7 @@
 #include "io.h"
 #include "audio.h"
 #include "midi.h"
-#include "dsp.h"
-
-#ifdef DEBUG
-// #define PERFMON
-#endif
+#include "wdsp.h"
 
 int main(void)
 {
@@ -22,7 +18,7 @@ int main(void)
 
 	puts("Hey there! {^-^}~");
 
-	dsp_init();
+	wdsp_init(SAMPLE_RATE);
 
 	while (1)
 	{
@@ -56,7 +52,7 @@ int main(void)
 			time_active = 0;
 		}
 #else
-			__WFI();
+		__WFI();
 #endif
 	}
 }

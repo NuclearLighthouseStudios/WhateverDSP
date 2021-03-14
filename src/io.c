@@ -69,7 +69,7 @@ typedef struct
 	int seq_idx;
 } io_pin;
 
-io_pin io_pins[] = {
+static io_pin io_pins[] = {
 	[POT_1] = AIN_PIN_DEF(GPIOC, 0, 10),
 	[POT_2] = AIN_PIN_DEF(GPIOC, 2, 12),
 	[POT_3] = AIN_PIN_DEF(GPIOC, 1, 11),
@@ -100,7 +100,7 @@ io_pin io_pins[] = {
 };
 
 #define MAX_ADC_CHANNELS 16
-unsigned short int adc_buffer[MAX_ADC_CHANNELS];
+static unsigned short int adc_buffer[MAX_ADC_CHANNELS];
 
 void io_digital_out(io_pin_idx idx, bool val)
 {
@@ -142,7 +142,7 @@ float io_analog_in(io_pin_idx idx)
 	return (float)adc_buffer[io_pins[idx].seq_idx] / 4096.0f;
 }
 
-void io_init_ADC(void)
+static void io_init_ADC(void)
 {
 	int seq_length = 0;
 
@@ -231,7 +231,7 @@ void io_init_ADC(void)
 	SET_BIT(ADC1->CR2, ADC_CR2_SWSTART);
 }
 
-void io_init_DAC(void)
+static void io_init_DAC(void)
 {
 	// Enable DAC clock
 	SET_BIT(RCC->APB1ENR, RCC_APB1ENR_DACEN);

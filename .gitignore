@@ -1,2 +1,12 @@
-.vscode/.*
+**/.vscode/.*
+
 build/
+libwdsp.a
+
+examples/**/*
+!examples/**/*/
+!examples/**/*.*
+!examples/**/README
+examples/**/*.bin
+examples/**/*.hex
+examples/**/*.map

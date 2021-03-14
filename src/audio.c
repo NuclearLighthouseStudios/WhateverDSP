@@ -4,33 +4,33 @@
 
 #include "audio.h"
 
-#include "dsp.h"
+#include "wdsp.h"
 
-int32_t i2s_adc_buffer[2][BUFSIZE * 2];
-int32_t i2s_dac_buffer[2][BUFSIZE * 2];
+static int32_t i2s_adc_buffer[2][BUFSIZE * 2];
+static int32_t i2s_dac_buffer[2][BUFSIZE * 2];
 
-float in_buffer[2][BUFSIZE];
-float out_buffer[2][BUFSIZE];
+static float in_buffer[BUFSIZE][2];
+static float out_buffer[BUFSIZE][2];
 
-volatile bool adc_ready = false;
-volatile bool dsp_ready = false;
-volatile bool dac_empty = false;
+volatile static bool adc_ready = false;
+volatile static bool dsp_ready = false;
+volatile static bool dac_empty = false;
 
-void audio_transfer_in(int buf)
+static inline void audio_transfer_in(int buf)
 {
 	for (int i = 0; i < BUFSIZE; i++)
 	{
-		in_buffer[0][i] = (((i2s_adc_buffer[buf][i << 1] >> 16) & 0xffff) | ((i2s_adc_buffer[buf][i << 1] & 0xffff) << 16)) / (float)INT32_MAX;
-		in_buffer[1][i] = (((i2s_adc_buffer[buf][(i << 1) + 1] >> 16) & 0xffff) | ((i2s_adc_buffer[buf][(i << 1) + 1] & 0xffff) << 16)) / (float)INT32_MAX;
+		in_buffer[i][0] = (((i2s_adc_buffer[buf][i << 1] >> 16) & 0xffff) | ((i2s_adc_buffer[buf][i << 1] & 0xffff) << 16)) / (float)INT32_MAX;
+		in_buffer[i][1] = (((i2s_adc_buffer[buf][(i << 1) + 1] >> 16) & 0xffff) | ((i2s_adc_buffer[buf][(i << 1) + 1] & 0xffff) << 16)) / (float)INT32_MAX;
 	}
 }
 
-void audio_transfer_out(int buf)
+static inline void audio_transfer_out(int buf)
 {
 	for (int i = 0; i < BUFSIZE; i++)
 	{
-		int samp_l = out_buffer[0][i] * (float)INT32_MAX;
-		int samp_r = out_buffer[1][i] * (float)INT32_MAX;
+		int samp_l = out_buffer[i][0] * (float)INT32_MAX;
+		int samp_r = out_buffer[i][1] * (float)INT32_MAX;
 		i2s_dac_buffer[buf][i << 1] = ((samp_l >> 16) & 0xffff) | ((samp_l & 0xffff) << 16);
 		i2s_dac_buffer[buf][(i << 1) + 1] = ((samp_r >> 16) & 0xffff) | ((samp_r & 0xffff) << 16);
 	}
@@ -67,7 +67,7 @@ void audio_process(void)
 	{
 		adc_ready = false;
 
-		dsp_process(in_buffer, out_buffer);
+		wdsp_process(in_buffer, out_buffer, BUFSIZE);
 
 		if (dac_empty)
 		{
@@ -81,7 +81,7 @@ void audio_process(void)
 	}
 }
 
-void audio_init_I2S_out(void)
+static void audio_init_I2S_out(void)
 {
 	// Set up DMA
 	MODIFY_REG(DMA1_Stream4->CR, DMA_SxCR_PL_Msk, 0b11 << DMA_SxCR_PL_Pos);		 // Highest Priority
@@ -148,7 +148,7 @@ void audio_init_I2S_out(void)
 	SET_BIT(SPI2->I2SCFGR, SPI_I2SCFGR_I2SE);
 }
 
-void audio_init_I2S_in(void)
+static void audio_init_I2S_in(void)
 {
 	// Set up DMA
 	MODIFY_REG(DMA1_Stream0->CR, DMA_SxCR_PL_Msk, 0b11 << DMA_SxCR_PL_Pos);		 // Highest Priority

@@ -11,7 +11,7 @@ void SysTick_Handler(void)
 	sys_ticks++;
 }
 
-void sys_init_clock(void)
+static void sys_init_clock(void)
 {
 	// Set flash latency to 5 wait states
 	MODIFY_REG(FLASH->ACR, FLASH_ACR_LATENCY_Msk, FLASH_ACR_LATENCY_5WS);
@@ -74,7 +74,7 @@ void sys_init(void)
 	SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_DMA1EN);
 	SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_DMA2EN);
 
-#ifdef DEBUG
+#ifdef PERFMON
 	// Enable trace and cycle counter
 	CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
 	DWT->CYCCNT = 0;
