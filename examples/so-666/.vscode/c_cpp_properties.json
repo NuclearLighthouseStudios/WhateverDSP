@@ -3,7 +3,7 @@
         {
             "name": "STM32F405",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/../../**"
             ],
             "defines": [
                 "STM32F405xx",

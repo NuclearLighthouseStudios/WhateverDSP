@@ -7,6 +7,8 @@
 #define NUMVOICES 16
 #define BASENOTE 21
 
+// SO-666, based on https://github.com/50m30n3/SO-666, used with permission
+
 struct voice
 {
 	float *string;
@@ -15,6 +17,7 @@ struct voice
 	int stringpos;
 	int stringlength;
 	bool active;
+	bool sustained;
 };
 
 struct voice voices[NUMVOICES];
@@ -25,6 +28,8 @@ unsigned long int sample_rate;
 float lpval, lplast;
 float hpval, hplast;
 float feedback;
+
+bool sustain = false;
 
 /* greets to wrl */
 static inline float shape_tanh(const float x)
@@ -65,7 +70,6 @@ void wdsp_init(unsigned long int _sample_rate)
 
 void wdsp_process(float in_buffer[][2], float out_buffer[][2], unsigned long int nBlocks)
 {
-	io_digital_out(LED_1, fabs(in_buffer[0][0]) >= 0.5);
 	io_digital_out(MUTE, io_digital_in(BUTTON_2));
 
 	float volume = io_analog_in(POT_4);
@@ -83,9 +87,11 @@ void wdsp_process(float in_buffer[][2], float out_buffer[][2], unsigned long int
 
 			if (note >= BASENOTE)
 			{
-				while (voices[currvoice].active)
+				int active_count = 0;
+				while ((voices[currvoice].active) && (active_count < NUMVOICES))
 				{
 					currvoice++;
+					active_count++;
 					currvoice %= NUMVOICES;
 				}
 
@@ -108,16 +114,33 @@ void wdsp_process(float in_buffer[][2], float out_buffer[][2], unsigned long int
 			for (int i = 0; i < NUMVOICES; i++)
 			{
 				if (voices[i].note == note)
-					voices[i].active = false;
+				{
+					if (sustain)
+						voices[i].sustained = true;
+					else
+						voices[i].active = false;
+				}
 			}
 		}
-		// else if (message->command == CONTROL_CHANGE)
-		// {
-		// 	if (message->data.cc.param == 1)
-		// 	{
-		// 		feedback = 0.01 + pow(message->data.cc.value / 127.0, 4.0) * 0.9;
-		// 	}
-		// }
+		else if (message->command == CONTROL_CHANGE)
+		{
+			if (message->data.cc.param == 64)
+			{
+				sustain = message->data.cc.value > 10;
+
+				if (!sustain)
+				{
+					for (int i = 0; i < NUMVOICES; i++)
+					{
+						if (voices[i].sustained)
+						{
+							voices[i].active = false;
+							voices[i].sustained = false;
+						}
+					}
+				}
+			}
+		}
 	}
 
 	for (int i = 0; i < nBlocks; i++)
@@ -167,4 +190,6 @@ void wdsp_process(float in_buffer[][2], float out_buffer[][2], unsigned long int
 		out_buffer[i][0] = sample;
 		out_buffer[i][1] = sample;
 	}
+
+	io_digital_out(LED_1, fabs(out_buffer[0][0]) >= 0.5);
 }
