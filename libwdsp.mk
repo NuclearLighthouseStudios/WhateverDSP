@@ -11,7 +11,7 @@ C_INCLUDES = -I $(WDSP_PATH)/includes/libwdsp
 include $(WDSP_PATH)/buildvars.mk
 
 .PHONY: all
-all: $(TARGET) $(TARGET).bin $(TARGET).hex size
+all: libwdsp $(TARGET) $(TARGET).bin $(TARGET).hex size
 
 .PHONY: size
 size: $(TARGET)
@@ -20,8 +20,6 @@ size: $(TARGET)
 .PHONY: libwdsp
 libwdsp:
 	$(MAKE) -C $(WDSP_PATH)
-
-$(WDSP_PATH)/libwdsp.a: libwdsp
 
 $(TARGET).hex: $(TARGET)
 	$(HEX) $< $@
