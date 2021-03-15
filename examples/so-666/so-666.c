@@ -72,10 +72,12 @@ void wdsp_process(float in_buffer[][2], float out_buffer[][2], unsigned long int
 {
 	io_digital_out(MUTE, io_digital_in(BUTTON_2));
 
-	float volume = io_analog_in(POT_4);
+	bool bypass = io_digital_in(BUTTON_1);
+
+	float mod = io_analog_in(POT_4);
 	float cutoff = powf((io_analog_in(POT_1) * 127.0f + 50.0f) / 200.0f, 5.0f);
 	float reso = io_analog_in(POT_2);
-	feedback = 0.01 + powf(io_analog_in(POT_3), 4.0) * 0.9;
+	feedback = powf(io_analog_in(POT_3), 3.0f) * 0.9f;
 
 	midi_message *message = midi_get_message();
 
@@ -170,7 +172,7 @@ void wdsp_process(float in_buffer[][2], float out_buffer[][2], unsigned long int
 		sample -= hplast;
 
 		float fmod = shape_tanh(lplast);
-		lpval += (sample - lplast) * cutoff * (1.0f - fmod * fmod * 0.9f);
+		lpval += (sample - lplast) * cutoff * (1.0f - fmod * fmod * mod * 0.9f);
 		lplast += lpval;
 		lpval *= reso;
 		sample = lplast;
@@ -185,7 +187,10 @@ void wdsp_process(float in_buffer[][2], float out_buffer[][2], unsigned long int
 				voices[voice].stringpos = 0;
 		}
 
-		sample = shape_tanh(sample) * volume;
+		if (bypass)
+			sample = exciter;
+		else
+			sample = shape_tanh(sample) * 0.75;
 
 		out_buffer[i][0] = sample;
 		out_buffer[i][1] = sample;
