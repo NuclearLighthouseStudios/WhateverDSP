@@ -39,6 +39,12 @@
 .word	_sdata
 // end address for the .data section. defined in linker script
 .word	_edata
+// start address for the initialization values of the .ccmram section. defined in linker script
+.word	_siccmram
+// start address for the .ccmram section. defined in linker script
+.word	_sccmram
+// end address for the .ccmram section. defined in linker script
+.word	_eccmram
 // start address for the .bss section. defined in linker script
 .word	_sbss
 // end address for the .bss section. defined in linker script
@@ -66,6 +72,25 @@ LoopCopyDataInit:
 	adds	r2, r0, r1
 	cmp		r2, r3
 	bcc		CopyDataInit
+
+
+// Copy the CCMRAM initializers from flash to CCMRAM
+	movs	r1, #0
+	b		LoopCopyCCMRAMInit
+
+CopyCCMRAMInit:
+	ldr		r3, =_siccmram
+	ldr		r3, [r3, r1]
+	str		r3, [r0, r1]
+	adds	r1, r1, #4
+
+LoopCopyCCMRAMInit:
+	ldr		r0, =_sccmram
+	ldr		r3, =_eccmram
+	adds	r2, r0, r1
+	cmp		r2, r3
+	bcc		CopyCCMRAMInit
+
 
 	ldr		r2, =_sbss
 	b		LoopFillZerobss
