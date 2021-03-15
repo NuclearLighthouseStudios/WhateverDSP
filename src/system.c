@@ -4,7 +4,7 @@
 
 extern void initialise_monitor_handles(void);
 
-volatile unsigned long int sys_ticks = 0;
+volatile unsigned long int  __attribute__((section(".ccmram"))) sys_ticks = 0;
 
 void SysTick_Handler(void)
 {
