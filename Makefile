@@ -42,9 +42,7 @@ OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
 vpath %.s $(sort $(dir $(ASM_SOURCES)))
 
 .PHONY: all
-all: $(TARGET).a($(OBJECTS))
-
-$(TARGET).a($(OBJECTS)): $(OBJECTS)
+all: $(OBJECTS) $(TARGET).a($(OBJECTS))
 
 # Generate dependency information
 CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
