@@ -24,24 +24,34 @@ typedef struct
 
 typedef struct
 {
-	unsigned char command;
-	unsigned char channel;
-	int length;
-	union
-	{
-		unsigned char raw[2];
-		midi_note_message note;
-		midi_cc_message cc;
-		midi_pitchbend_message bitchbend;
-	} data;
-} midi_message;
+	unsigned char pressure;
+
+} midi_aftertouch_message;
 
 typedef enum
 {
-	NOTE_ON = 0x09,
-	NOTE_OFF = 0x08,
-	CONTROL_CHANGE = 0x0B,
+	NOTE_OFF = 0b1000,
+	NOTE_ON = 0b1001,
+	POLY_AFTERTOUCH = 0b1010,
+	CONTROL_CHANGE = 0b1011,
+	PROGRAM_CHANGE = 0b1100,
+	AFTERTOUCH = 0b1101,
+	PITCHBEND = 0b1110,
 } midi_command;
+
+typedef struct
+{
+	midi_command command;
+	int channel;
+	int length;
+	union
+	{
+		midi_note_message note;
+		midi_cc_message control;
+		midi_pitchbend_message pitchbend;
+		midi_aftertouch_message aftertouch;
+	} data;
+} midi_message;
 
 extern void midi_init(void);
 

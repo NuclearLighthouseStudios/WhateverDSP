@@ -124,9 +124,9 @@ void wdsp_process(float in_buffer[][2], float out_buffer[][2], unsigned long int
 		}
 		else if (message->command == CONTROL_CHANGE)
 		{
-			if (message->data.cc.param == 64)
+			if (message->data.control.param == 64)
 			{
-				sustain = message->data.cc.value > 10;
+				sustain = message->data.control.value > 10;
 
 				if (!sustain)
 				{
