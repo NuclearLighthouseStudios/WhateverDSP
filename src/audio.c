@@ -9,12 +9,12 @@
 static int32_t i2s_adc_buffer[2][BUFSIZE * 2];
 static int32_t i2s_dac_buffer[2][BUFSIZE * 2];
 
-static float in_buffer[BUFSIZE][2];
-static float out_buffer[BUFSIZE][2];
+static float __attribute__((section(".ccmram"))) in_buffer[BUFSIZE][2];
+static float __attribute__((section(".ccmram"))) out_buffer[BUFSIZE][2];
 
-volatile static bool adc_ready = false;
-volatile static bool dsp_ready = false;
-volatile static bool dac_empty = false;
+volatile static bool __attribute__((section(".ccmram"))) adc_ready = false;
+volatile static bool __attribute__((section(".ccmram"))) dsp_ready = false;
+volatile static bool __attribute__((section(".ccmram"))) dac_empty = false;
 
 static inline void audio_transfer_in(int buf)
 {
