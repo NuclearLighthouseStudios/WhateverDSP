@@ -38,7 +38,7 @@
 
 #define AOUT_PIN_DEF(_port, _num, _channel)              \
 	{                                                    \
-		.mode = ANALOG_OUT,                               \
+		.mode = ANALOG_OUT,                              \
 		.port = (_port),                                 \
 		.pin_mode_mask = (GPIO_MODER_MODER##_num##_Msk), \
 		.pin_mode_pos = (GPIO_MODER_MODER##_num##_Pos),  \

@@ -5,6 +5,7 @@ examples/**/*
 !examples/**/*/
 !examples/**/*.*
 !examples/**/README
+!examples/**/Makefile
 examples/**/*.bin
 examples/**/*.hex
 examples/**/*.map
