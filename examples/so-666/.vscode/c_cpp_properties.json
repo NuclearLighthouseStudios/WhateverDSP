@@ -1,13 +1,9 @@
 {
     "configurations": [
         {
-            "name": "STM32F405",
+            "name": "STM32",
             "includePath": [
                 "${workspaceFolder}/../../**"
-            ],
-            "defines": [
-                "STM32F405xx",
-                "__ARM_FEATURE_DSP=1"
             ],
             "compilerPath": "/usr/bin/arm-none-eabi-gcc",
             "cStandard": "c11",
