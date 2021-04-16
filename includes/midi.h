@@ -56,5 +56,6 @@ typedef struct
 extern void midi_init(void);
 
 extern midi_message *midi_get_message(void);
+extern void midi_send_message(midi_message message);
 
 #endif
