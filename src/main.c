@@ -24,6 +24,8 @@ int main(void)
 	{
 		audio_process();
 
+		wdsp_idle();
+
 #ifdef PERFMON
 		uint32_t sleep_start;
 		static uint32_t sleep_end = 0;

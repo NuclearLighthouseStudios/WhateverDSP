@@ -79,6 +79,62 @@ void wdsp_process(float in_buffer[][2], float out_buffer[][2], unsigned long int
 	float reso = io_analog_in(POT_2);
 	feedback = powf(io_analog_in(POT_3), 3.0f) * 0.9f;
 
+	for (int i = 0; i < nBlocks; i++)
+	{
+		float l_samp = in_buffer[i][0];
+		float r_samp = in_buffer[i][1];
+
+		float exciter = (l_samp + r_samp) / 2.0f;
+		float noise = (((float)rand() / (float)RAND_MAX) * 2.0f - 1.0f) * 0.001f + (l_samp + r_samp) / 2.0f;
+		float sample = 0;
+
+		for (int voice = 0; voice < NUMVOICES; voice++)
+		{
+			int pos = voices[voice].stringpos;
+
+			voices[voice].string[pos] = voices[voice].string[pos] * 0.9f + voices[voice].lp_last * 0.1f;
+			voices[voice].lp_last = voices[voice].string[pos];
+
+			voices[voice].string[pos] = shape_tanh(voices[voice].string[pos]) * 0.99f;
+
+			sample += voices[voice].string[pos];
+		}
+
+		hpval += (sample - hplast) * 0.0001f;
+		hplast += hpval;
+		hpval *= 0.96f;
+		sample -= hplast;
+
+		float fmod = shape_tanh(lplast);
+		lpval += (sample - lplast) * cutoff * (1.0f - fmod * fmod * mod * 0.9f);
+		lplast += lpval;
+		lpval *= reso;
+		sample = lplast;
+
+		for (int voice = 0; voice < NUMVOICES; voice++)
+		{
+			if (voices[voice].active)
+				voices[voice].string[voices[voice].stringpos] += (sample + noise) * feedback + exciter;
+
+			voices[voice].stringpos++;
+			if (voices[voice].stringpos >= voices[voice].stringlength)
+				voices[voice].stringpos = 0;
+		}
+
+		if (bypass)
+			sample = exciter;
+		else
+			sample = shape_tanh(sample) * 0.75;
+
+		out_buffer[i][0] = sample;
+		out_buffer[i][1] = sample;
+	}
+
+	io_digital_out(LED_1, fabs(out_buffer[0][0]) >= 0.5);
+}
+
+void wdsp_idle(void)
+{
 	midi_message *message = midi_get_message();
 
 	if (message != NULL)
@@ -144,57 +200,4 @@ void wdsp_process(float in_buffer[][2], float out_buffer[][2], unsigned long int
 			}
 		}
 	}
-
-	for (int i = 0; i < nBlocks; i++)
-	{
-		float l_samp = in_buffer[i][0];
-		float r_samp = in_buffer[i][1];
-
-		float exciter = (l_samp + r_samp) / 2.0f;
-		float noise = (((float)rand() / (float)RAND_MAX) * 2.0f - 1.0f) * 0.001f + (l_samp + r_samp) / 2.0f;
-		float sample = 0;
-
-		for (int voice = 0; voice < NUMVOICES; voice++)
-		{
-			int pos = voices[voice].stringpos;
-
-			voices[voice].string[pos] = voices[voice].string[pos] * 0.9f + voices[voice].lp_last * 0.1f;
-			voices[voice].lp_last = voices[voice].string[pos];
-
-			voices[voice].string[pos] = shape_tanh(voices[voice].string[pos]) * 0.99f;
-
-			sample += voices[voice].string[pos];
-		}
-
-		hpval += (sample - hplast) * 0.0001f;
-		hplast += hpval;
-		hpval *= 0.96f;
-		sample -= hplast;
-
-		float fmod = shape_tanh(lplast);
-		lpval += (sample - lplast) * cutoff * (1.0f - fmod * fmod * mod * 0.9f);
-		lplast += lpval;
-		lpval *= reso;
-		sample = lplast;
-
-		for (int voice = 0; voice < NUMVOICES; voice++)
-		{
-			if (voices[voice].active)
-				voices[voice].string[voices[voice].stringpos] += (sample + noise) * feedback + exciter;
-
-			voices[voice].stringpos++;
-			if (voices[voice].stringpos >= voices[voice].stringlength)
-				voices[voice].stringpos = 0;
-		}
-
-		if (bypass)
-			sample = exciter;
-		else
-			sample = shape_tanh(sample) * 0.75;
-
-		out_buffer[i][0] = sample;
-		out_buffer[i][1] = sample;
-	}
-
-	io_digital_out(LED_1, fabs(out_buffer[0][0]) >= 0.5);
 }
