@@ -2,9 +2,7 @@
 
 #include "system.h"
 
-extern void initialise_monitor_handles(void);
-
-volatile unsigned long int  __attribute__((section(".ccmram"))) sys_ticks = 0;
+volatile unsigned long int __attribute__((section(".ccmram"))) sys_ticks = 0;
 
 void SysTick_Handler(void)
 {
@@ -59,6 +57,14 @@ void sys_enable_fpu(void)
 	SCB->CPACR |= ((3UL << 10 * 2) | (3UL << 11 * 2));
 }
 
+int _write(int file, char *ptr, int len)
+{
+	for (unsigned int i = 0; i < len; i++)
+		ITM_SendChar((*ptr++));
+
+	return len;
+}
+
 void sys_init(void)
 {
 	// Enable System Configuration and Power clocks
@@ -74,13 +80,12 @@ void sys_init(void)
 	SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_DMA1EN);
 	SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_DMA2EN);
 
-#ifdef PERFMON
-	// Enable trace and cycle counter
-	CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+	// Enable trace and cycle counter for performance monitoring
+	SET_BIT(CoreDebug->DEMCR, CoreDebug_DEMCR_TRCENA_Msk);
 	DWT->CYCCNT = 0;
-	DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+	SET_BIT(DWT->CTRL, DWT_CTRL_CYCCNTENA_Msk);
 
-	// Enable Instrumentation Trace Macrocell stdio
-	initialise_monitor_handles();
-#endif
+	// Enable Asynchronous trace output
+	SET_BIT(DBGMCU->CR, DBGMCU_CR_TRACE_IOEN);
+	MODIFY_REG(DBGMCU->CR, DBGMCU_CR_TRACE_MODE_Msk, 0b00 << DBGMCU_CR_TRACE_MODE_Pos);
 }

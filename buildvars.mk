@@ -1,8 +1,8 @@
 ######################################
 # Default build variables
 ######################################
-PERFMON ?= false
-OPT ?= -O3
+export PERFMON ?= false
+export OPT ?= -O3
 
 #######################################
 # binaries
@@ -70,16 +70,10 @@ CFLAGS += -g -gdwarf-2
 LDSCRIPT = $(WDSP_PATH)/STM32F405RGTx_FLASH.ld
 
 # libraries
-LDLIBS = -lc -lm
-
-ifeq ($(PERFMON), true)
-LDLIBS += -lrdimon -specs=rdimon.specs -u _printf_float
-else
-LDLIBS += -lnosys
-endif
+LDLIBS = -lc -lm -lnosys
 
 LIBDIR += -L $(WDSP_PATH)
-LDFLAGS = $(MCU) -specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) -Wl,-Map=$(TARGET).map,--cref -Wl,--gc-sections
+LDFLAGS = $(MCU) -specs=nano.specs -u _printf_float -T$(LDSCRIPT) $(LIBDIR) -Wl,-Map=$(TARGET).map,--cref -Wl,--gc-sections
 
 
 #######################################

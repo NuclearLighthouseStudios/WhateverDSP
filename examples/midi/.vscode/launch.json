@@ -20,9 +20,20 @@
 				"target/stm32f4x.cfg"
 			],
 			"preLaunchTask": "Make",
-			"postLaunchCommands": [
-				"monitor arm semihosting enable"
-			]
+			"swoConfig": {
+				"enabled": true,
+				"source": "probe",
+				"swoFrequency": 100000,
+				"cpuFrequency": 168000000,
+				"decoders": [
+					{
+						"port": 0,
+						"type": "console",
+						"label": "SWO output",
+						"encoding": "ascii"
+					}
+				]
+			}
 		}
 	]
 }
