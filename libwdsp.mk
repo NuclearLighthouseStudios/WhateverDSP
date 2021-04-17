@@ -8,6 +8,9 @@ WDSP_PATH ?= $(dir $(lastword $(MAKEFILE_LIST)))
 
 C_INCLUDES = -I $(WDSP_PATH)/includes/libwdsp
 
+export PERFMON
+export OPT
+
 include $(WDSP_PATH)/buildvars.mk
 
 .PHONY: all
@@ -32,3 +35,4 @@ $(TARGET): $(WDSP_PATH)/libwdsp.a
 .PHONY: clean
 clean:
 	rm -f $(TARGET) $(TARGET).bin $(TARGET).hex $(TARGET).map
+	$(MAKE) -C $(WDSP_PATH) clean

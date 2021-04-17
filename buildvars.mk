@@ -1,8 +1,8 @@
 ######################################
 # Default build variables
 ######################################
-export PERFMON ?= false
-export OPT ?= -O3
+PERFMON ?= false
+OPT ?= -O3
 
 #######################################
 # binaries
