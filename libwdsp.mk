@@ -8,9 +8,6 @@ WDSP_PATH ?= $(dir $(lastword $(MAKEFILE_LIST)))
 
 C_INCLUDES = -I $(WDSP_PATH)/includes/libwdsp
 
-export PERFMON
-export OPT
-
 include $(WDSP_PATH)/buildvars.mk
 
 .PHONY: all
