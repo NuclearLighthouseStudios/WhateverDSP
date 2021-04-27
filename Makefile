@@ -18,17 +18,12 @@ C_INCLUDES =  \
 -I includes/stm
 
 include buildvars.mk
-
-ifneq ($(MAKECMDGOALS), clean)
-ifeq ($(BOARD), )
-$(error Please set the board type)
-endif
-
 include boards/$(BOARD)/board.mk
 include boards/$(BOARD)/build.mk
 include cores/$(CORE)/core.mk
 include cores/$(CORE)/build.mk
-endif
+
+$(info building $(BOARD))
 
 # list of objects
 OBJECTS = $(addprefix $(BUILD_DIR)/,$(notdir $(C_SOURCES:.c=.o)))

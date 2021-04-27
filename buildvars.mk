@@ -3,7 +3,7 @@
 ######################################
 export OPT ?= -O3
 export DEBUG ?= false
-
+export BOARD ?= wdsp-dev
 
 #######################################
 # binaries

@@ -26,7 +26,7 @@ size: $(TARGET)
 
 .PHONY: libwdsp
 libwdsp:
-	$(MAKE) -C $(WDSP_PATH) BOARD=$(BOARD)
+	$(MAKE) -C $(WDSP_PATH)
 
 
 $(TARGET).hex: $(TARGET)
