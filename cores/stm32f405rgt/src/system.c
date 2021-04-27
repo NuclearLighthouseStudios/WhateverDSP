@@ -59,11 +59,32 @@ void sys_enable_fpu(void)
 	SCB->CPACR |= ((3UL << 10 * 2) | (3UL << 11 * 2));
 }
 
+static inline void sys_itm_send_int(unsigned int data, unsigned int port)
+{
+#ifdef DEBUG
+	if (((ITM->TCR & ITM_TCR_ITMENA_Msk) != 0UL) &&
+		((ITM->TER & 1UL << port) != 0UL))
+	{
+		while (ITM->PORT[port].u32 == 0UL)
+		{
+			__NOP();
+		}
+		ITM->PORT[port].u32 = data;
+	}
+#endif
+}
+
+static inline void sys_itm_send_float(float value, unsigned int port)
+{
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+	sys_itm_send_int(*(unsigned int *)&value, port);
+}
+
 int _write(int file, char *ptr, int len)
 {
 #ifdef DEBUG
 	for (unsigned int i = 0; i < len; i++)
-		ITM_SendChar((*ptr++));
+		sys_itm_send_int((*ptr++), 0);
 #endif
 	return len;
 }
@@ -92,6 +113,7 @@ void sys_idle(void)
 		last_print = sys_ticks;
 
 		float load = ((float)time_active / (float)(time_idle + time_active) * 100.0f);
+		sys_itm_send_float(load, 1);
 		printf("Load: %5.2f%%\n", load);
 
 		time_idle = 0;

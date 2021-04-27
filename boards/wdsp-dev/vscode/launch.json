@@ -28,9 +28,34 @@
 						"type": "console",
 						"label": "SWO output",
 						"encoding": "ascii"
+					},
+					{
+						"type": "graph",
+						"port": 1,
+						"encoding": "float",
+						"graphId": "sysload",
+						"scale": 1
 					}
 				]
-			}
+			},
+			// Uncomment this to show real time system load graph
+			// "graphConfig": [
+			// 	{
+			// 		"label": "System Load",
+			// 		"timespan": 25,
+			// 		"type": "realtime",
+			// 		"annotate": false,
+			// 		"maximum": 100,
+			// 		"minimum": 0,
+			// 		"plots": [
+			// 			{
+			// 				"graphId": "sysload",
+			// 				"label": "System Load",
+			// 				"color": "#00acab"
+			// 			}
+			// 		]
+			// 	},
+			// ]
 		}
 	]
 }
