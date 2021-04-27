@@ -12,8 +12,10 @@ WDSP_PATH := $(dir $(lastword $(MAKEFILE_LIST)))
 
 C_INCLUDES = -I $(WDSP_PATH)/includes/libwdsp
 
+include $(WDSP_PATH)/buildvars.mk
 include $(WDSP_PATH)/boards/$(BOARD)/board.mk
 include $(WDSP_PATH)/cores/$(CORE)/core.mk
+
 
 .PHONY: all
 all: libwdsp $(TARGET) $(TARGET).bin $(TARGET).hex size
@@ -24,7 +26,9 @@ size: $(TARGET)
 
 .PHONY: libwdsp
 libwdsp:
-	$(MAKE) -C $(WDSP_PATH)
+	$(MAKE) -C $(WDSP_PATH) BOARD=$(BOARD)
+
+
 $(TARGET).hex: $(TARGET)
 	$(HEX) $< $@
 
@@ -32,6 +36,7 @@ $(TARGET).bin: $(TARGET)
 	$(BIN) $< $@
 
 $(TARGET): $(WDSP_PATH)/libwdsp.a
+
 
 .PHONY: vscode
 vscode:

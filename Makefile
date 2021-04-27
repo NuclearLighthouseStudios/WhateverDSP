@@ -17,6 +17,8 @@ C_INCLUDES =  \
 -I includes/cmsis \
 -I includes/stm
 
+include buildvars.mk
+
 ifneq ($(MAKECMDGOALS), clean)
 ifeq ($(BOARD), )
 $(error Please set the board type)
