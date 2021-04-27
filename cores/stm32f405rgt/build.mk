@@ -50,8 +50,8 @@ C_DEFS =  \
 -DSTM32F405xx
 
 # Enable performance monitoring if selected
-ifeq ($(PERFMON), true)
-C_DEFS += -DPERFMON
+ifeq ($(DEBUG), true)
+C_DEFS += -DDEBUG
 endif
 
 # gcc flags

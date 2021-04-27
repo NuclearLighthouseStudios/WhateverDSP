@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "stm32f4xx.h"
 
 #include "system.h"
@@ -59,9 +61,10 @@ void sys_enable_fpu(void)
 
 int _write(int file, char *ptr, int len)
 {
+#ifdef DEBUG
 	for (unsigned int i = 0; i < len; i++)
 		ITM_SendChar((*ptr++));
-
+#endif
 	return len;
 }
 
@@ -114,6 +117,7 @@ void sys_init(void)
 	SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_DMA1EN);
 	SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_DMA2EN);
 
+#ifdef DEBUG
 	// Enable trace and cycle counter for performance monitoring
 	SET_BIT(CoreDebug->DEMCR, CoreDebug_DEMCR_TRCENA_Msk);
 	DWT->CYCCNT = 0;
@@ -122,4 +126,5 @@ void sys_init(void)
 	// Enable Asynchronous trace output
 	SET_BIT(DBGMCU->CR, DBGMCU_CR_TRACE_IOEN);
 	MODIFY_REG(DBGMCU->CR, DBGMCU_CR_TRACE_MODE_Msk, 0b00 << DBGMCU_CR_TRACE_MODE_Pos);
+#endif
 }
