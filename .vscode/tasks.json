@@ -7,6 +7,9 @@
             "options": {
                 "cwd": "${workspaceFolder}"
             },
+            "args": [
+                "BOARD=wdsp-dev"
+            ],
             "problemMatcher": [
                 "$gcc"
             ],

@@ -183,7 +183,7 @@ static void audio_init_I2S_in(void)
 	// Enable DMA channel
 	SET_BIT(DMA1_Stream0->CR, DMA_SxCR_EN);
 
-	// Enable SPI2 periphery clock
+	// Enable SPI3 periphery clock
 	SET_BIT(RCC->APB1ENR, RCC_APB1ENR_SPI3EN);
 
 	// Set up input pins

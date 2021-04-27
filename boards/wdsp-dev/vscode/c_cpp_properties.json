@@ -1,9 +1,9 @@
 {
     "configurations": [
         {
-            "name": "STM32",
+            "name": "WhateverDSP",
             "includePath": [
-                "${workspaceFolder}/../../**"
+                "${workspaceFolder}/_WDSP_PATH_/includes/**"
             ],
             "compilerPath": "/usr/bin/arm-none-eabi-gcc",
             "cStandard": "c11",

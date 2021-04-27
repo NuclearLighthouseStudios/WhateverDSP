@@ -1,7 +1,6 @@
 ######################################
 # Default build variables
 ######################################
-export PERFMON ?= false
 export OPT ?= -O3
 
 #######################################
@@ -64,19 +63,19 @@ CFLAGS += -g -gdwarf-2
 
 
 #######################################
-# LDFLAGS
-#######################################
-# link script
-LDSCRIPT = $(WDSP_PATH)/STM32F405RGTx_FLASH.ld
-
-# libraries
-LDLIBS = -lc -lm -lnosys
-
-LIBDIR += -L $(WDSP_PATH)
-LDFLAGS = $(MCU) -specs=nano.specs -u _printf_float -T$(LDSCRIPT) $(LIBDIR) -Wl,-Map=$(TARGET).map,--cref -Wl,--gc-sections
-
-
-#######################################
 # ARFLAGS
 #######################################
 ARFLAGS = cUrs
+
+
+#######################################
+# LDFLAGS
+#######################################
+# link script
+LDSCRIPT = $(WDSP_PATH)/cores/$(CORE)/STM32F405RGTx_FLASH.ld
+
+# libraries
+LDLIBS = -lc -lm -lnosys
+LIBDIR = -L $(WDSP_PATH)
+
+LDFLAGS = $(MCU) -specs=nano.specs -u _printf_float -T$(LDSCRIPT) $(LIBDIR) -Wl,-Map=$(TARGET).map,--cref -Wl,--gc-sections

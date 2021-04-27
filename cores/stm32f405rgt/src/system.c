@@ -65,6 +65,40 @@ int _write(int file, char *ptr, int len)
 	return len;
 }
 
+void sys_idle(void)
+{
+#ifdef DEBUG
+	uint32_t sleep_start;
+	static uint32_t sleep_end = 0;
+	static uint32_t time_active = 0;
+	static uint32_t time_idle = 0;
+	static uint32_t last_print = 0;
+
+	__disable_irq();
+	time_active += DWT->CYCCNT - sleep_end;
+	sleep_start = DWT->CYCCNT;
+
+	__WFI();
+
+	time_idle += DWT->CYCCNT - sleep_start;
+	sleep_end = DWT->CYCCNT;
+	__enable_irq();
+
+	if ((sys_ticks - last_print) >= 1000)
+	{
+		last_print = sys_ticks;
+
+		float load = ((float)time_active / (float)(time_idle + time_active) * 100.0f);
+		printf("Load: %5.2f%%\n", load);
+
+		time_idle = 0;
+		time_active = 0;
+	}
+#else
+	__WFI();
+#endif
+}
+
 void sys_init(void)
 {
 	// Enable System Configuration and Power clocks

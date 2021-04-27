@@ -6,8 +6,7 @@ examples/**/*
 !examples/**/*.*
 !examples/**/README
 !examples/**/Makefile
+examples/**/.vscode/
 examples/**/*.bin
 examples/**/*.hex
 examples/**/*.map
-
-**/.vscode/.*

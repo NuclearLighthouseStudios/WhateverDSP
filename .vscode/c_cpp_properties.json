@@ -1,7 +1,7 @@
 {
     "configurations": [
         {
-            "name": "STM32F405",
+            "name": "wdsp-dev",
             "includePath": [
                 "${workspaceFolder}/**"
             ],
