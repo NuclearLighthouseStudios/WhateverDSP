@@ -2,6 +2,24 @@
     "tasks": [
         {
             "type": "process",
+            "label": "Make Debug",
+            "command": "make",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "args": [
+                "DEBUG=true"
+            ],
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "type": "process",
             "label": "Make",
             "command": "make",
             "options": {
@@ -10,10 +28,7 @@
             "problemMatcher": [
                 "$gcc"
             ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            "group": "build",
         }
     ],
     "version": "2.0.0"
