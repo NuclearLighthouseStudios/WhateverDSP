@@ -3,6 +3,8 @@
 BUILD_DIR ?= build
 TARGET ?= libwdsp
 
+include buildvars.mk
+
 # C sources
 C_SOURCES =  \
 src/wdsp.c
@@ -17,13 +19,12 @@ C_INCLUDES =  \
 -I includes/cmsis \
 -I includes/stm
 
-include buildvars.mk
 include boards/$(BOARD)/board.mk
 include boards/$(BOARD)/build.mk
 include cores/$(CORE)/core.mk
 include cores/$(CORE)/build.mk
 
-$(info building $(BOARD))
+$(info building $(TARGET) for board $(BOARD))
 
 # list of objects
 OBJECTS = $(addprefix $(BUILD_DIR)/,$(notdir $(C_SOURCES:.c=.o)))
