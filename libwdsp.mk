@@ -13,7 +13,7 @@ WDSP_PATH := $(dir $(lastword $(MAKEFILE_LIST)))
 C_INCLUDES = -I $(WDSP_PATH)/includes/libwdsp
 
 include $(WDSP_PATH)/boards/$(BOARD)/board.mk
-include $(WDSP_PATH)/cores/$(CORE)/build.mk
+include $(WDSP_PATH)/cores/$(CORE)/core.mk
 
 .PHONY: all
 all: libwdsp $(TARGET) $(TARGET).bin $(TARGET).hex size

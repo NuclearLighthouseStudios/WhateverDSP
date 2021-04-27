@@ -3,6 +3,20 @@
 BUILD_DIR ?= build
 TARGET ?= libwdsp
 
+# C sources
+C_SOURCES =  \
+src/wdsp.c
+
+# ASM sources
+ASM_SOURCES =
+
+# C includes
+C_INCLUDES =  \
+-I includes \
+-I includes/arm \
+-I includes/cmsis \
+-I includes/stm
+
 ifneq ($(MAKECMDGOALS), clean)
 ifeq ($(BOARD), )
 $(error Please set the board type)
@@ -10,6 +24,7 @@ endif
 
 include boards/$(BOARD)/board.mk
 include boards/$(BOARD)/build.mk
+include cores/$(CORE)/core.mk
 include cores/$(CORE)/build.mk
 endif
 

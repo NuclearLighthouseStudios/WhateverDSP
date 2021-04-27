@@ -9,16 +9,6 @@
 #include "midi.h"
 #include "wdsp.h"
 
-void __attribute__((weak)) wdsp_init(unsigned long int sample_rate)
-{
-	return;
-}
-
-void __attribute__((weak)) wdsp_idle(void)
-{
-	return;
-}
-
 int main(void)
 {
 	sys_init();
