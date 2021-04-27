@@ -5,6 +5,7 @@ export OPT ?= -O3
 export DEBUG ?= false
 export BOARD ?= wdsp-dev
 
+
 #######################################
 # binaries
 #######################################
@@ -43,6 +44,7 @@ CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -Werror -ffast-math -fdata-
 
 # Always add debugging symbols
 CFLAGS += -g -gdwarf-2
+
 
 #######################################
 # LDFLAGS
