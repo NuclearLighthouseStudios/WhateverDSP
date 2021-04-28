@@ -24,7 +24,10 @@ include boards/$(BOARD)/build.mk
 include cores/$(CORE)/core.mk
 include cores/$(CORE)/build.mk
 
-$(info building $(TARGET) for board $(BOARD))
+# Reset default goal so it doesn't get overriden by rules in the included files
+.DEFAULT_GOAL :=
+
+$(info building $(TARGET).a for board $(BOARD))
 
 # list of objects
 OBJECTS = $(addprefix $(BUILD_DIR)/,$(notdir $(C_SOURCES:.c=.o)))

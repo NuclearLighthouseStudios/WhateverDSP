@@ -17,6 +17,8 @@ C_INCLUDES = -I $(WDSP_PATH)/includes/libwdsp
 include $(WDSP_PATH)/boards/$(BOARD)/board.mk
 include $(WDSP_PATH)/cores/$(CORE)/core.mk
 
+# Reset default goal so it doesn't get overriden by rules in the included files
+.DEFAULT_GOAL :=
 
 .PHONY: all
 all: $(TARGET) $(TARGET).bin $(TARGET).hex size
@@ -38,12 +40,6 @@ $(TARGET).bin: $(TARGET)
 	$(BIN) $< $@
 
 $(TARGET): $(WDSP_PATH)/libwdsp.a
-
-.PHONY: vscode
-vscode:
-	cp -r $(WDSP_PATH)/boards/$(BOARD)/vscode/ .vscode
-	sed -i 's#_WDSP_PATH_#$(WDSP_PATH)#' .vscode/c_cpp_properties.json
-	sed -i 's#_TARGET_#$(TARGET)#' .vscode/launch.json
 
 .PHONY: clean
 clean:
