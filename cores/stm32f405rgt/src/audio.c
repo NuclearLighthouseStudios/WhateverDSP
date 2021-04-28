@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <stdio.h>
 
 #include "stm32f4xx.h"
 
@@ -12,30 +13,32 @@
 static int32_t i2s_adc_buffer[2][BUFSIZE * 2];
 static int32_t i2s_dac_buffer[2][BUFSIZE * 2];
 
-static float __attribute__((section(".ccmram"))) in_buffer[BUFSIZE][2];
-static float __attribute__((section(".ccmram"))) out_buffer[BUFSIZE][2];
+static float __attribute__((section(".ccmram"))) in_buffers[2][BUFSIZE][2];
+static float __attribute__((section(".ccmram"))) out_buffers[2][BUFSIZE][2];
 
-volatile static bool __attribute__((section(".ccmram"))) adc_ready = false;
-volatile static bool __attribute__((section(".ccmram"))) dsp_ready = false;
-volatile static bool __attribute__((section(".ccmram"))) dac_empty = false;
+static int __attribute__((section(".ccmram"))) in_buffer = 0;
+static int __attribute__((section(".ccmram"))) out_buffer = 0;
 
-static inline void audio_transfer_in(int buf)
+static bool __attribute__((section(".ccmram"))) adc_ready = false;
+static bool __attribute__((section(".ccmram"))) dac_ready = false;
+
+static inline void audio_transfer_in(int in_buf, int dma_buf)
 {
 	for (int i = 0; i < BUFSIZE; i++)
 	{
-		in_buffer[i][0] = (((i2s_adc_buffer[buf][i << 1] >> 16) & 0xffff) | ((i2s_adc_buffer[buf][i << 1] & 0xffff) << 16)) / (float)INT32_MAX;
-		in_buffer[i][1] = (((i2s_adc_buffer[buf][(i << 1) + 1] >> 16) & 0xffff) | ((i2s_adc_buffer[buf][(i << 1) + 1] & 0xffff) << 16)) / (float)INT32_MAX;
+		in_buffers[in_buf][i][0] = (((i2s_adc_buffer[dma_buf][i << 1] >> 16) & 0xffff) | ((i2s_adc_buffer[dma_buf][i << 1] & 0xffff) << 16)) / (float)INT32_MAX;
+		in_buffers[in_buf][i][1] = (((i2s_adc_buffer[dma_buf][(i << 1) + 1] >> 16) & 0xffff) | ((i2s_adc_buffer[dma_buf][(i << 1) + 1] & 0xffff) << 16)) / (float)INT32_MAX;
 	}
 }
 
-static inline void audio_transfer_out(int buf)
+static inline void audio_transfer_out(int out_buf, int dma_buf)
 {
 	for (int i = 0; i < BUFSIZE; i++)
 	{
-		int samp_l = out_buffer[i][0] * (float)INT32_MAX;
-		int samp_r = out_buffer[i][1] * (float)INT32_MAX;
-		i2s_dac_buffer[buf][i << 1] = ((samp_l >> 16) & 0xffff) | ((samp_l & 0xffff) << 16);
-		i2s_dac_buffer[buf][(i << 1) + 1] = ((samp_r >> 16) & 0xffff) | ((samp_r & 0xffff) << 16);
+		int samp_l = out_buffers[out_buf][i][0] * (float)INT32_MAX;
+		int samp_r = out_buffers[out_buf][i][1] * (float)INT32_MAX;
+		i2s_dac_buffer[dma_buf][i << 1] = ((samp_l >> 16) & 0xffff) | ((samp_l & 0xffff) << 16);
+		i2s_dac_buffer[dma_buf][(i << 1) + 1] = ((samp_r >> 16) & 0xffff) | ((samp_r & 0xffff) << 16);
 	}
 }
 
@@ -43,9 +46,8 @@ void DMA1_Stream0_IRQHandler(void)
 {
 	SET_BIT(DMA1->LIFCR, DMA_LIFCR_CTCIF0);
 
-	audio_transfer_in(!READ_BIT(DMA1_Stream0->CR, DMA_SxCR_CT));
-
-	dsp_ready = false;
+	audio_transfer_in(!in_buffer, !READ_BIT(DMA1_Stream0->CR, DMA_SxCR_CT));
+	in_buffer = !in_buffer;
 	adc_ready = true;
 }
 
@@ -53,34 +55,18 @@ void DMA1_Stream4_IRQHandler(void)
 {
 	SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF4);
 
-	if (dsp_ready)
-	{
-		audio_transfer_out(!READ_BIT(DMA1_Stream4->CR, DMA_SxCR_CT));
-		dsp_ready = false;
-	}
-	else
-	{
-		dac_empty = true;
-	}
+	audio_transfer_out(!out_buffer, !READ_BIT(DMA1_Stream4->CR, DMA_SxCR_CT));
+	out_buffer = !out_buffer;
+	dac_ready = true;
 }
 
 void audio_process(void)
 {
-	if (adc_ready)
+	if (adc_ready && dac_ready)
 	{
 		adc_ready = false;
-
-		wdsp_process(in_buffer, out_buffer, BUFSIZE);
-
-		if (dac_empty)
-		{
-			audio_transfer_out(!READ_BIT(DMA1_Stream4->CR, DMA_SxCR_CT));
-			dac_empty = false;
-		}
-		else
-		{
-			dsp_ready = true;
-		}
+		dac_ready = false;
+		wdsp_process(in_buffers[in_buffer], out_buffers[out_buffer], BUFSIZE);
 	}
 }
 
