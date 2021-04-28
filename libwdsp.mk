@@ -54,7 +54,10 @@ vscode:
 flash: $(TARGET).hex
 	st-flash --opt --reset --connect-under-reset --format ihex write $(TARGET).hex
 
-.PHONY: clean
-clean:
-	rm -f $(TARGET) $(TARGET).bin $(TARGET).hex $(TARGET).map
+.PHONY: libclean
+libclean:
 	$(MAKE) -C $(WDSP_PATH) clean
+	rm -f $(TARGET) $(TARGET).bin $(TARGET).hex $(TARGET).map
+
+.PHONY: clean
+clean: libclean
