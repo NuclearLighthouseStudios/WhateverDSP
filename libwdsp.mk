@@ -12,7 +12,10 @@ WDSP_PATH := $(dir $(lastword $(MAKEFILE_LIST)))
 
 include $(WDSP_PATH)/buildvars.mk
 
-C_INCLUDES = -I $(WDSP_PATH)/includes/libwdsp
+C_INCLUDES = \
+-I $(WDSP_PATH)/includes/libwdsp \
+-I $(WDSP_PATH)/boards/$(BOARD) \
+-I $(WDSP_PATH)/cores/$(CORE)
 
 include $(WDSP_PATH)/boards/$(BOARD)/board.mk
 include $(WDSP_PATH)/cores/$(CORE)/core.mk

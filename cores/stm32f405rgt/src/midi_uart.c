@@ -1,10 +1,12 @@
 #include "stm32f4xx.h"
 
-#include "midi_phy.h"
+#include "core.h"
+#include "board.h"
 
 #include "midi.h"
 
-#include "midi_uart.conf.h"
+#include "midi_phy.h"
+#include "conf/midi_uart.h"
 
 void midi_phy_transmit(unsigned char *data, unsigned short int length)
 {

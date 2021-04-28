@@ -3,101 +3,13 @@
 
 #include "stm32f4xx.h"
 
+#include "core.h"
+#include "board.h"
+
+#include "pintypes.h"
+
 #include "io.h"
-
-#define DOUT_PIN_DEF(_port, _num)                        \
-	{                                                    \
-		.mode = DIGITAL_OUT,                             \
-		.port = (_port),                                 \
-		.pin_mode_mask = (GPIO_MODER_MODER##_num##_Msk), \
-		.pin_mode_pos = (GPIO_MODER_MODER##_num##_Pos),  \
-		.pin_dr_val = (GPIO_ODR_OD##_num),               \
-	}
-
-#define DIN_PIN_DEF(_port, _num)                         \
-	{                                                    \
-		.mode = DIGITAL_IN,                              \
-		.port = (_port),                                 \
-		.pin_mode_mask = (GPIO_MODER_MODER##_num##_Msk), \
-		.pin_mode_pos = (GPIO_MODER_MODER##_num##_Pos),  \
-		.pin_dr_val = (GPIO_IDR_ID##_num),               \
-		.pin_pupdr_mask = (GPIO_PUPDR_PUPD##_num##_Msk), \
-		.pin_pupdr_pos = (GPIO_PUPDR_PUPD##_num##_Pos),  \
-	}
-
-#define AIN_PIN_DEF(_port, _num, _channel)               \
-	{                                                    \
-		.mode = ANALOG_IN,                               \
-		.port = (_port),                                 \
-		.pin_mode_mask = (GPIO_MODER_MODER##_num##_Msk), \
-		.pin_mode_pos = (GPIO_MODER_MODER##_num##_Pos),  \
-		.pin_pupdr_mask = (GPIO_PUPDR_PUPD##_num##_Msk), \
-		.pin_pupdr_pos = (GPIO_PUPDR_PUPD##_num##_Pos),  \
-		.channel = (_channel)                            \
-	}
-
-#define AOUT_PIN_DEF(_port, _num, _channel)              \
-	{                                                    \
-		.mode = ANALOG_OUT,                              \
-		.port = (_port),                                 \
-		.pin_mode_mask = (GPIO_MODER_MODER##_num##_Msk), \
-		.pin_mode_pos = (GPIO_MODER_MODER##_num##_Pos),  \
-		.pin_pupdr_mask = (GPIO_PUPDR_PUPD##_num##_Msk), \
-		.pin_pupdr_pos = (GPIO_PUPDR_PUPD##_num##_Pos),  \
-		.channel = (_channel)                            \
-	}
-
-typedef enum
-{
-	NONE = 0,
-	ANALOG_IN,
-	ANALOG_OUT,
-	DIGITAL_IN,
-	DIGITAL_OUT
-} io_mode;
-
-typedef struct
-{
-	io_mode mode;
-	GPIO_TypeDef *port;
-	unsigned long int pin_mode_mask;
-	unsigned long int pin_mode_pos;
-	unsigned long int pin_pupdr_mask;
-	unsigned long int pin_pupdr_pos;
-	unsigned long int pin_dr_val;
-	int channel;
-	int seq_idx;
-} io_pin;
-
-static io_pin io_pins[] = {
-	[POT_1] = AIN_PIN_DEF(GPIOC, 0, 10),
-	[POT_2] = AIN_PIN_DEF(GPIOC, 2, 12),
-	[POT_3] = AIN_PIN_DEF(GPIOC, 1, 11),
-	[POT_4] = AIN_PIN_DEF(GPIOC, 3, 13),
-
-	[AIN_1] = AIN_PIN_DEF(GPIOA, 3, 3),
-	[AIN_2] = AIN_PIN_DEF(GPIOA, 2, 2),
-	[AIN_3] = AIN_PIN_DEF(GPIOA, 1, 1),
-	[AIN_4] = AIN_PIN_DEF(GPIOA, 0, 0),
-
-	[AOUT_1] = AOUT_PIN_DEF(GPIOA, 5, 2),
-	[AOUT_2] = AOUT_PIN_DEF(GPIOA, 4, 1),
-
-	[LED_1] = DOUT_PIN_DEF(GPIOA, 6),
-
-	[BUTTON_1] = DIN_PIN_DEF(GPIOB, 0),
-	[BUTTON_2] = DIN_PIN_DEF(GPIOB, 1),
-
-	[DOUT_1] = DOUT_PIN_DEF(GPIOA, 7),
-	[DOUT_2] = DOUT_PIN_DEF(GPIOC, 4),
-	[DOUT_3] = DOUT_PIN_DEF(GPIOC, 5),
-
-	[DIN_1] = DIN_PIN_DEF(GPIOB, 2),
-	[DIN_2] = DIN_PIN_DEF(GPIOB, 10),
-	[DIN_3] = DIN_PIN_DEF(GPIOB, 11),
-
-	[MUTE] = DOUT_PIN_DEF(GPIOB, 14),
-};
+#include "conf/io.h"
 
 #define MAX_ADC_CHANNELS 16
 static unsigned short int adc_buffer[MAX_ADC_CHANNELS];

@@ -1,5 +1,5 @@
-#ifndef __MIDI_UART_CONF_H
-#define __MIDI_UART_CONF_H
+#ifndef __CONF_MIDI_UART_H
+#define __CONF_MIDI_UART_H
 
 #include "stm32f4xx.h"
 

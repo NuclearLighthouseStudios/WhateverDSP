@@ -2,9 +2,12 @@
 
 #include "stm32f4xx.h"
 
-#include "audio.h"
+#include "core.h"
+#include "board.h"
 
 #include "wdsp.h"
+
+#include "audio.h"
 
 static int32_t i2s_adc_buffer[2][BUFSIZE * 2];
 static int32_t i2s_dac_buffer[2][BUFSIZE * 2];

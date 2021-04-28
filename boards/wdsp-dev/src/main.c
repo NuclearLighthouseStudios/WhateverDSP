@@ -1,7 +1,7 @@
 #include <stdio.h>
-#include <math.h>
 
-#include "stm32f4xx.h"
+#include "core.h"
+#include "board.h"
 
 #include "system.h"
 #include "io.h"

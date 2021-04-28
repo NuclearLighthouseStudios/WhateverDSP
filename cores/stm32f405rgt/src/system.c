@@ -2,6 +2,9 @@
 
 #include "stm32f4xx.h"
 
+#include "core.h"
+#include "board.h"
+
 #include "system.h"
 
 volatile unsigned long int __attribute__((section(".ccmram"))) sys_ticks = 0;

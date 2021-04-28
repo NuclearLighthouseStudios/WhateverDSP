@@ -8,4 +8,4 @@ cores/$(CORE)/src/audio.c\
 cores/$(CORE)/src/midi_uart.c
 
 C_INCLUDES += \
--I boards/$(BOARD)/conf
+-I boards/$(BOARD)

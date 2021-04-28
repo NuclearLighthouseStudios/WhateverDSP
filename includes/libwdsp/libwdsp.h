@@ -5,6 +5,9 @@
 extern "C" {
 #endif
 
+#include "core.h"
+#include "board.h"
+
 #include "../io.h"
 #include "../midi.h"
 
