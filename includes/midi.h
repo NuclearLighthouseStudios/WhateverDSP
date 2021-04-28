@@ -55,6 +55,9 @@ typedef struct
 
 extern void midi_init(void);
 
+extern void midi_receive(unsigned char data);
+extern void midi_transmit(void);
+
 extern midi_message *midi_get_message(void);
 extern void midi_send_message(midi_message message);
 
