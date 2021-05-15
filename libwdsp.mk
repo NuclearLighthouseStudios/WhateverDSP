@@ -44,17 +44,6 @@ $(TARGET).bin: $(TARGET)
 
 $(TARGET): $(WDSP_PATH)/libwdsp.a
 
-.PHONY: vscode
-vscode:
-	mkdir -p .vscode
-	cp -r $(WDSP_PATH)/boards/$(BOARD)/vscode/* .vscode/
-	sed -i 's#_WDSP_PATH_#$(WDSP_PATH)#;s#_BOARD_#$(BOARD)#;s#_CORE_#$(CORE)#' .vscode/c_cpp_properties.json
-	sed -i 's#_TARGET_#$(TARGET)#' .vscode/launch.json
-
-.PHONY: flash
-flash: $(TARGET).hex
-	st-flash --opt --reset --connect-under-reset --format ihex write $(TARGET).hex
-
 .PHONY: libclean
 libclean:
 	$(MAKE) -C $(WDSP_PATH) clean
