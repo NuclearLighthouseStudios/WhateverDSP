@@ -58,7 +58,7 @@ CXXLAGS += -g -gdwarf-2
 LDLIBS = -lc -lm -lnosys
 LIBDIR = -L $(WDSP_PATH)
 
-LDFLAGS = $(MCU) -specs=nano.specs -u _printf_float -T$(LDSCRIPT) $(LIBDIR) -Wl,-Map=$(TARGET).map,--cref -Wl,--gc-sections
+LDFLAGS = $(MCU) -specs=nano.specs -specs=nosys.specs -u _printf_float -T$(LDSCRIPT) $(LIBDIR) -Wl,-Map=$(TARGET).map,--cref -Wl,--gc-sections
 
 
 #######################################
