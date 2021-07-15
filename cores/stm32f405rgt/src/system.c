@@ -92,6 +92,15 @@ int _write(int file, char *ptr, int len)
 	return len;
 }
 
+void sys_delay(unsigned long int delay)
+{
+	unsigned long int tickstart = sys_ticks;
+	unsigned long int wait = delay;
+
+	while ((sys_ticks - tickstart) < wait)
+		__NOP();
+}
+
 void sys_idle(void)
 {
 #ifdef DEBUG
