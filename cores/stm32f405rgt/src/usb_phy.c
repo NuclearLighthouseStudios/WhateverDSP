@@ -125,16 +125,20 @@ void usb_phy_transmit(usb_in_endpoint *ep)
 void usb_phy_receive(usb_out_endpoint *ep)
 {
 	size_t size = ep->rx_size;
-	int count = 1;
+	int pkg_count = 1;
+
+	// EP0 only supports transactions up to 64 bytes
+	if ((ep->epnum == 0) && (size > 64))
+		size = 64;
 
 	if (size > 0)
 	{
-		count = size / ep->max_packet_size;
+		pkg_count = size / ep->max_packet_size;
 		if (size % ep->max_packet_size != 0)
-			count += 1;
+			pkg_count += 1;
 	}
 
-	MODIFY_REG(USB_OTG_FS_OUTEP(ep->epnum)->DOEPTSIZ, USB_OTG_DOEPTSIZ_PKTCNT_Msk, count << USB_OTG_DOEPTSIZ_PKTCNT_Pos);
+	MODIFY_REG(USB_OTG_FS_OUTEP(ep->epnum)->DOEPTSIZ, USB_OTG_DOEPTSIZ_PKTCNT_Msk, pkg_count << USB_OTG_DOEPTSIZ_PKTCNT_Pos);
 	MODIFY_REG(USB_OTG_FS_OUTEP(ep->epnum)->DOEPTSIZ, USB_OTG_DOEPTSIZ_XFRSIZ_Msk, size << USB_OTG_DOEPTSIZ_XFRSIZ_Pos);
 
 	CLEAR_BIT(USB_OTG_FS_OUTEP(ep->epnum)->DOEPCTL, USB_OTG_DOEPCTL_STALL);
@@ -254,7 +258,23 @@ void OTG_FS_IRQHandler(void)
 
 				if (READ_BIT(ints, USB_OTG_DOEPINT_XFRC))
 				{
-					ep->rx_ready = true;
+					if (ep->rx_count < ep->rx_size)
+					{
+						size_t left = (USB_OTG_FS_OUTEP(ep->epnum)->DOEPTSIZ & USB_OTG_DOEPTSIZ_XFRSIZ_Msk) >> USB_OTG_DOEPTSIZ_XFRSIZ_Pos;
+
+						// If the current transfer went through completely start another one
+						// transfers should always end with a short or sezo length packet
+						// BUT: this does not seem to be the case with test packets I send using pyusb?!
+						if (left == 0)
+							usb_phy_receive(ep);
+						else
+							ep->rx_ready = true;
+					}
+					else
+					{
+						ep->rx_ready = true;
+					}
+
 					SET_BIT(USB_OTG_FS_OUTEP(epnum)->DOEPINT, USB_OTG_DOEPINT_XFRC);
 				}
 			}
@@ -290,14 +310,14 @@ void OTG_FS_IRQHandler(void)
 					ep->tx_count += count;
 
 					if (ep->tx_count >= ep->tx_size)
-					CLEAR_BIT(USB_OTG_FS_DEVICE->DIEPEMPMSK, 0b1 << epnum);
+						CLEAR_BIT(USB_OTG_FS_DEVICE->DIEPEMPMSK, 0b1 << epnum);
 				}
 
 				if (READ_BIT(ints, USB_OTG_DIEPINT_XFRC))
 				{
 					if (ep->tx_count >= ep->tx_size)
 					{
-						// In case our amount of data to send doesn't result in a "short packet"
+						// In case our amount of data to send doesn't result in a "short packet" at the end
 						// we need to send one more zero size packet to signal the end of transmission
 						if ((ep->tx_size != 0) && (ep->tx_size % ep->max_packet_size == 0))
 						{
@@ -306,7 +326,7 @@ void OTG_FS_IRQHandler(void)
 						}
 						else
 						{
-					ep->tx_ready = true;
+							ep->tx_ready = true;
 						}
 					}
 					else
