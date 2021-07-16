@@ -25,9 +25,14 @@ typedef struct usb_in_endpoint usb_in_endpoint;
 typedef struct usb_out_endpoint usb_out_endpoint;
 
 typedef void (*usb_tx_callback)(usb_in_endpoint *ep, size_t count);
+typedef void (*usb_in_start_callback)(usb_in_endpoint *ep);
+typedef void (*usb_in_stop_callback)(usb_in_endpoint *ep);
 
 typedef void (*usb_rx_callback)(usb_out_endpoint *ep, uint8_t *buf, size_t count);
 typedef void (*usb_setup_callback)(usb_out_endpoint *ep, usb_setup_packet *packet);
+typedef void (*usb_out_start_callback)(usb_out_endpoint *ep);
+typedef void (*usb_out_stop_callback)(usb_out_endpoint *ep);
+
 
 struct usb_in_endpoint
 {
@@ -46,6 +51,8 @@ struct usb_in_endpoint
 	bool tx_ready;
 
 	usb_tx_callback tx_callback;
+	usb_in_start_callback start_callback;
+	usb_in_stop_callback stop_callback;
 };
 
 struct usb_out_endpoint
@@ -66,17 +73,20 @@ struct usb_out_endpoint
 
 	usb_setup_callback setup_callback;
 	usb_rx_callback rx_callback;
+	usb_out_start_callback start_callback;
+	usb_out_stop_callback stop_callback;
 };
 
 
 extern void usb_init(void);
 extern void usb_start(void);
 extern void usb_reset(void);
+extern void usb_configure(void);
 
 extern void usb_process(void);
 
-extern usb_in_endpoint *usb_add_in_ep(usb_ep_type type, size_t max_packet_size, size_t fifo_size);
-extern usb_out_endpoint *usb_add_out_ep(usb_ep_type type, size_t max_packet_size);
+extern usb_in_endpoint *usb_add_in_ep(usb_ep_type type, size_t max_packet_size, size_t fifo_size, usb_in_start_callback start_callback, usb_in_stop_callback stop_callback);
+extern usb_out_endpoint *usb_add_out_ep(usb_ep_type type, size_t max_packet_size, usb_out_start_callback start_callback, usb_out_stop_callback stop_callback);
 
 extern void usb_set_rx_callback(usb_out_endpoint *ep, usb_rx_callback callback);
 extern void usb_set_setup_callback(usb_out_endpoint *ep, usb_setup_callback callback);

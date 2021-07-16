@@ -36,7 +36,7 @@ void usb_receive(uint8_t *buf, size_t size, usb_out_endpoint *ep)
 }
 
 
-usb_in_endpoint *usb_add_in_ep(usb_ep_type type, size_t max_packet_size, size_t fifo_size)
+usb_in_endpoint *usb_add_in_ep(usb_ep_type type, size_t max_packet_size, size_t fifo_size, usb_in_start_callback start_callback, usb_in_stop_callback stop_callback)
 {
 	int epnum = 0;
 	while (in_eps[epnum].active)
@@ -67,10 +67,13 @@ usb_in_endpoint *usb_add_in_ep(usb_ep_type type, size_t max_packet_size, size_t 
 	in_eps[epnum].tx_ready = false;
 	in_eps[epnum].tx_callback = NULL;
 
+	in_eps[epnum].start_callback = start_callback;
+	in_eps[epnum].stop_callback = stop_callback;
+
 	return &(in_eps[epnum]);
 }
 
-usb_out_endpoint *usb_add_out_ep(usb_ep_type type, size_t max_packet_size)
+usb_out_endpoint *usb_add_out_ep(usb_ep_type type, size_t max_packet_size, usb_out_start_callback start_callback, usb_out_stop_callback stop_callback)
 {
 	int epnum = 0;
 	while (out_eps[epnum].active)
@@ -102,6 +105,9 @@ usb_out_endpoint *usb_add_out_ep(usb_ep_type type, size_t max_packet_size)
 	out_eps[epnum].setup_ready = false;
 	out_eps[epnum].setup_callback = NULL;
 
+	out_eps[epnum].start_callback = start_callback;
+	out_eps[epnum].stop_callback = stop_callback;
+
 	return &(out_eps[epnum]);
 }
 
@@ -127,6 +133,15 @@ void usb_reset(void)
 
 	for (int i = 0; i < USB_PHY_NUM_EPS; i++)
 	{
+		if ((out_eps[i].active) && (out_eps[i].stop_callback))
+			out_eps[i].stop_callback(&(out_eps[i]));
+
+		if ((in_eps[i].active) && (in_eps[i].stop_callback))
+			in_eps[i].stop_callback(&(in_eps[i]));
+	}
+
+	for (int i = 0; i < USB_PHY_NUM_EPS; i++)
+	{
 		in_eps[i].tx_ready = false;
 
 		out_eps[i].rx_ready = false;
@@ -136,7 +151,33 @@ void usb_reset(void)
 	usb_phy_in_ep_init(&(in_eps[0]));
 	usb_phy_out_ep_init(&(out_eps[0]));
 
+	if (out_eps[0].start_callback)
+		out_eps[0].start_callback(&(out_eps[0]));
+
+	if (in_eps[0].start_callback)
+		in_eps[0].start_callback(&(in_eps[0]));
+
 	usb_phy_flush_fifos();
+}
+
+void usb_configure(void)
+{
+	for (int i = 1; i < USB_PHY_NUM_EPS; i++)
+	{
+		if (in_eps[i].active)
+			usb_phy_in_ep_init(&(in_eps[i]));
+		if (out_eps[i].active)
+			usb_phy_out_ep_init(&(out_eps[i]));
+	}
+
+	for (int i = 0; i < USB_PHY_NUM_EPS; i++)
+	{
+		if ((out_eps[i].active) && (out_eps[i].start_callback))
+			out_eps[i].start_callback(&(out_eps[i]));
+
+		if ((in_eps[i].active) && (in_eps[i].start_callback))
+			in_eps[i].start_callback(&(in_eps[i]));
+	}
 }
 
 void usb_process(void)
