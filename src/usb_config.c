@@ -132,7 +132,7 @@ static void usb_config_setup(usb_out_endpoint *ep, usb_setup_packet *packet)
 
 void usb_config_init(void)
 {
-	setup_in_ep = usb_add_in_ep(EP_TYPE_CONTROL, 64, 0x80);
+	setup_in_ep = usb_add_in_ep(EP_TYPE_CONTROL, 64, 0x18);
 	setup_out_ep = usb_add_out_ep(EP_TYPE_CONTROL, 64);
 	usb_set_setup_callback(setup_out_ep, &(usb_config_setup));
 }
