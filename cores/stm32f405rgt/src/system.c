@@ -101,6 +101,16 @@ void sys_delay(unsigned long int delay)
 		__NOP();
 }
 
+char *sys_get_serial(void)
+{
+	static char __CCMRAM serial[25];
+	for (int i = 0; i < 12; i++)
+	{
+		sprintf(serial + i * 2, "%02x", *(((uint8_t *)UID_BASE) + i));
+	}
+	return serial;
+}
+
 void sys_idle(void)
 {
 #ifdef DEBUG
