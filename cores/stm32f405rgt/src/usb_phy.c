@@ -57,7 +57,10 @@ static void usb_phy_fifo_read(uint8_t *buf, size_t size)
 		uint32_t data = USB_OTG_FS_DFIFO(0);
 
 		if (buf == NULL)
+		{
+			size = size < 4 ? 0 : size - 4;
 			continue;
+		}
 
 		for (int i = 0; i < 4; i++)
 		{
