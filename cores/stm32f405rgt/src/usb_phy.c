@@ -52,11 +52,13 @@ static int usb_phy_fifo_alloc(size_t size)
 
 static void usb_phy_fifo_read(uint8_t *buf, size_t size)
 {
-	if (buf == NULL) return;
-
 	while (size > 0)
 	{
 		uint32_t data = USB_OTG_FS_DFIFO(0);
+
+		if (buf == NULL)
+			continue;
+
 		for (int i = 0; i < 4; i++)
 		{
 			*(buf++) = data & 0xFF;
