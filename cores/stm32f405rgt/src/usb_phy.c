@@ -127,7 +127,7 @@ void usb_phy_transmit(usb_in_endpoint *ep)
 
 void usb_phy_receive(usb_out_endpoint *ep)
 {
-	size_t size = ep->rx_size;
+	size_t size = ep->rx_size - ep->rx_count;
 	int pkg_count = 1;
 
 	// EP0 only supports transactions up to 64 bytes
@@ -140,6 +140,8 @@ void usb_phy_receive(usb_out_endpoint *ep)
 		if (size % ep->max_packet_size != 0)
 			pkg_count += 1;
 	}
+
+	size = pkg_count * ep->max_packet_size;
 
 	MODIFY_REG(USB_OTG_FS_OUTEP(ep->epnum)->DOEPTSIZ, USB_OTG_DOEPTSIZ_PKTCNT_Msk, pkg_count << USB_OTG_DOEPTSIZ_PKTCNT_Pos);
 	MODIFY_REG(USB_OTG_FS_OUTEP(ep->epnum)->DOEPTSIZ, USB_OTG_DOEPTSIZ_XFRSIZ_Msk, size << USB_OTG_DOEPTSIZ_XFRSIZ_Pos);
@@ -220,8 +222,18 @@ void OTG_FS_IRQHandler(void)
 			switch (type)
 			{
 				case 0b0010: // Data packet
-					usb_phy_fifo_read((uint8_t *)ep->rx_buffer + ep->rx_count, size);
-					ep->rx_count += size;
+					// If reading the data would overflow the rx buffer, read only as much as we can and discard the rest
+					if (ep->rx_count + size > ep->rx_size)
+					{
+						usb_phy_fifo_read((uint8_t *)ep->rx_buffer + ep->rx_count, ep->rx_size - ep->rx_count);
+						usb_phy_fifo_read(NULL, ep->rx_count + size - ep->rx_size);
+						ep->rx_count = ep->rx_size;
+					}
+					else
+					{
+						usb_phy_fifo_read((uint8_t *)ep->rx_buffer + ep->rx_count, size);
+						ep->rx_count += size;
+					}
 					break;
 
 				case 0b0110: // Setup packet
