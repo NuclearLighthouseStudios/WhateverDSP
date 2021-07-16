@@ -92,17 +92,24 @@ static void usb_phy_fifo_write(uint8_t *buf, size_t size, int fifo_num)
 
 void usb_phy_transmit(usb_in_endpoint *ep)
 {
-	size_t size = ep->tx_size;
-	int count = 1;
+	int pkg_count = 1;
+
+	long int size = ep->tx_size - ep->tx_count;
+	if (size < 0)
+		size = 0;
+
+	// EP0 only supports transactions up to 64 bytes
+	if ((ep->epnum == 0) && (size > 64))
+		size = 64;
 
 	if (size > 0)
 	{
-		count = size / ep->max_packet_size;
+		pkg_count = size / ep->max_packet_size;
 		if (size % ep->max_packet_size != 0)
-			count += 1;
+			pkg_count += 1;
 	}
 
-	MODIFY_REG(USB_OTG_FS_INEP(ep->epnum)->DIEPTSIZ, USB_OTG_DIEPTSIZ_PKTCNT_Msk, count << USB_OTG_DIEPTSIZ_PKTCNT_Pos);
+	MODIFY_REG(USB_OTG_FS_INEP(ep->epnum)->DIEPTSIZ, USB_OTG_DIEPTSIZ_PKTCNT_Msk, pkg_count << USB_OTG_DIEPTSIZ_PKTCNT_Pos);
 	MODIFY_REG(USB_OTG_FS_INEP(ep->epnum)->DIEPTSIZ, USB_OTG_DIEPTSIZ_XFRSIZ_Msk, size << USB_OTG_DIEPTSIZ_XFRSIZ_Pos);
 
 	CLEAR_BIT(USB_OTG_FS_INEP(ep->epnum)->DIEPCTL, USB_OTG_DIEPCTL_STALL);
@@ -274,20 +281,39 @@ void OTG_FS_IRQHandler(void)
 
 				if ((READ_BIT(ints, USB_OTG_DIEPINT_TXFE)) && (READ_BIT(USB_OTG_FS_DEVICE->DIEPEMPMSK, 0b1 << epnum)))
 				{
-					size_t empty = USB_OTG_FS_INEP(epnum)->DTXFSTS;
+					size_t empty = USB_OTG_FS_INEP(epnum)->DTXFSTS * 4;
+					size_t count = (USB_OTG_FS_INEP(ep->epnum)->DIEPTSIZ & USB_OTG_DIEPTSIZ_XFRSIZ_Msk) >> USB_OTG_DIEPTSIZ_XFRSIZ_Pos;
 
-					size_t count = ep->tx_size;
 					if (count > empty) count = empty;
 
 					usb_phy_fifo_write(ep->tx_buffer + ep->tx_count, count, ep->fifo_num);
 					ep->tx_count += count;
 
+					if (ep->tx_count >= ep->tx_size)
 					CLEAR_BIT(USB_OTG_FS_DEVICE->DIEPEMPMSK, 0b1 << epnum);
 				}
 
 				if (READ_BIT(ints, USB_OTG_DIEPINT_XFRC))
 				{
+					if (ep->tx_count >= ep->tx_size)
+					{
+						// In case our amount of data to send doesn't result in a "short packet"
+						// we need to send one more zero size packet to signal the end of transmission
+						if ((ep->tx_size != 0) && (ep->tx_size % ep->max_packet_size == 0))
+						{
+							ep->tx_size = 0;
+							usb_phy_transmit(ep);
+						}
+						else
+						{
 					ep->tx_ready = true;
+						}
+					}
+					else
+					{
+						usb_phy_transmit(ep);
+					}
+
 					SET_BIT(USB_OTG_FS_INEP(epnum)->DIEPINT, USB_OTG_DIEPINT_XFRC);
 				}
 			}
