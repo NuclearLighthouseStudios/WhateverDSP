@@ -39,11 +39,14 @@ typedef struct __PACKED
 	uint8_t bMaxPower;
 } usb_configuration_descriptor;
 
+
+#define USB_CONFIG_MAX_STR_DESC_LENGTH 64
+
 typedef struct __PACKED
 {
 	uint8_t bLength;
 	uint8_t bDescriptorType;
-	uint16_t bString[64];
+	uint16_t bString[USB_CONFIG_MAX_STR_DESC_LENGTH];
 } usb_string_descriptor;
 
 extern void usb_config_init(void);

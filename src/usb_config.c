@@ -57,15 +57,26 @@ static void usb_config_setup(usb_out_endpoint *ep, usb_setup_packet *packet)
 
 				case 3:
 				{
-					usb_string_descriptor descriptor;
+					static usb_string_descriptor __CCMRAM descriptor;
 
 					if (index != 0)
 					{
+						if (index > sizeof(string_descriptors) / sizeof(*string_descriptors))
+						{
+							usb_phy_in_ep_stall(setup_in_ep);
+							usb_phy_out_ep_stall(setup_out_ep);
+							return;
+						}
+
 						char *str = string_descriptors[index - 1];
 
+						size_t length = strlen(str);
+						if (length > USB_CONFIG_MAX_STR_DESC_LENGTH)
+							length = USB_CONFIG_MAX_STR_DESC_LENGTH;
+
 						descriptor.bDescriptorType = 3;
-						descriptor.bLength = strlen(str) * 2 + 2;
-						for (int i = 0; i < strlen(str); i++)
+						descriptor.bLength = length * 2 + 2;
+						for (int i = 0; i < length; i++)
 							descriptor.bString[i] = str[i];
 					}
 					else
