@@ -15,21 +15,26 @@
 static usb_in_endpoint __CCMRAM *setup_in_ep;
 static usb_out_endpoint __CCMRAM *setup_out_ep;
 
+
 #define MAX_CONF_DESCS 64
 #define MAX_CONF_DESC_SIZE 1024
 
-static usb_descriptor __CCMRAM *usb_conf_descriptors[MAX_CONF_DESCS];
-static uint8_t __CCMRAM usb_conf_desc_buffer[MAX_CONF_DESC_SIZE];
+static usb_descriptor __CCMRAM *conf_descriptors[MAX_CONF_DESCS];
+static uint8_t __CCMRAM conf_desc_buffer[MAX_CONF_DESC_SIZE];
+
+static int __CCMRAM num_interfaces = 0;
+static int __CCMRAM num_conf_descriptors = 0;
+
+
+#define MAX_STRING_DESCS 64
+
+static char *string_descriptors[MAX_STRING_DESCS];
+
+static int __CCMRAM num_string_descriptors = 2;
+
 
 static bool __CCMRAM is_data_stage;
 
-
-static char *string_descriptors[] =
-{
-	USB_MANUFACTURER_STR,
-	USB_PRODUCT_STR,
-	NULL,
-};
 
 static usb_device_descriptor __CCMRAM device_descriptor =
 {
@@ -45,9 +50,6 @@ static usb_device_descriptor __CCMRAM device_descriptor =
 	.idVendor = USB_VID,
 	.idProduct = USB_DID,
 	.bcdDevice = USB_DEVICE_VER,
-	.iManufacturer = 1,
-	.iProduct = 2,
-	.iSerialNumber = 3,
 
 	.bNumConfigurations = 1,
 };
@@ -56,9 +58,7 @@ static usb_configuration_descriptor __CCMRAM configuration_descriptor =
 {
 	.bLength = 9,
 	.bDescriptorType = 0x02,
-	.wTotalLength = 9,
 
-	.bNumInterfaces = 0,
 	.bConfigurationValue = 1,
 	.iConfiguration = 0,
 	.bmAttributes = 0b11000000,
@@ -98,66 +98,41 @@ static void handle_setup(usb_out_endpoint *ep, usb_setup_packet *packet)
 
 			switch (type)
 			{
-				case 1:
+				case 0x01:
 				{
 					send_descriptor((usb_descriptor *)&device_descriptor, packet->wLength);
 				}
 				break;
 
-				case 2:
+				case 0x02:
 				{
 					size_t total_length = 0;
-					int num_interfaces = 0;
 
-					for (int i = 0; i < MAX_CONF_DESCS; i++)
-					{
-						if (usb_conf_descriptors[i] != NULL)
-						{
-							total_length += usb_conf_descriptors[i]->bLength;
-
-							if (usb_conf_descriptors[i]->bDescriptorType == 0x04)
-							{
-								((usb_interface_descriptor *)usb_conf_descriptors[i])->bInterfaceNumber = num_interfaces;
-								num_interfaces++;
-							}
-						}
-						else
-						{
-							break;
-						}
-
-					}
+					for (int i = 0; i < num_conf_descriptors; i++)
+						total_length += conf_descriptors[i]->bLength;
 
 					configuration_descriptor.wTotalLength = total_length;
 					configuration_descriptor.bNumInterfaces = num_interfaces;
 
-					uint8_t *buf = usb_conf_desc_buffer;
+					uint8_t *buf = conf_desc_buffer;
 
-					for (int i = 0; i < MAX_CONF_DESCS; i++)
+					for (int i = 0; i < num_conf_descriptors; i++)
 					{
-						if (usb_conf_descriptors[i] != NULL)
-						{
-							memcpy(buf, usb_conf_descriptors[i], usb_conf_descriptors[i]->bLength);
-							buf += usb_conf_descriptors[i]->bLength;
-						}
-						else
-						{
-							break;
-						}
-
+						memcpy(buf, conf_descriptors[i], conf_descriptors[i]->bLength);
+						buf += conf_descriptors[i]->bLength;
 					}
 
-					send_descriptor((usb_descriptor *)usb_conf_desc_buffer, packet->wLength);
+					send_descriptor((usb_descriptor *)conf_desc_buffer, packet->wLength);
 				}
 				break;
 
-				case 3:
+				case 0x03:
 				{
 					static usb_string_descriptor __CCMRAM descriptor;
 
 					if (index != 0)
 					{
-						if (index > sizeof(string_descriptors) / sizeof(*string_descriptors))
+						if (index > num_string_descriptors)
 						{
 							usb_phy_in_ep_stall(setup_in_ep);
 							usb_phy_out_ep_stall(setup_out_ep);
@@ -177,14 +152,14 @@ static void handle_setup(usb_out_endpoint *ep, usb_setup_packet *packet)
 						if (length > USB_CONFIG_MAX_STR_DESC_LENGTH)
 							length = USB_CONFIG_MAX_STR_DESC_LENGTH;
 
-						descriptor.bDescriptorType = 3;
+						descriptor.bDescriptorType = 0x03;
 						descriptor.bLength = length * 2 + 2;
 						for (int i = 0; i < length; i++)
 							descriptor.bString[i] = str[i];
 					}
 					else
 					{
-						descriptor.bDescriptorType = 3;
+						descriptor.bDescriptorType = 0x03;
 						descriptor.bLength = 4;
 						descriptor.bString[0] = 0x0409;
 					}
@@ -260,15 +235,28 @@ static void out_start(usb_out_endpoint *ep)
 	is_data_stage = false;
 }
 
+
 void usb_config_add_descriptor(usb_descriptor *desc)
 {
-	for (int i = 0; i < MAX_CONF_DESCS; i++)
+	if (num_conf_descriptors < MAX_CONF_DESCS)
 	{
-		if (usb_conf_descriptors[i] == NULL)
-		{
-			usb_conf_descriptors[i] = desc;
-			break;
-		}
+		conf_descriptors[num_conf_descriptors++] = desc;
+
+		if (desc->bDescriptorType == 0x04)
+			num_interfaces++;
+	}
+}
+
+int  usb_config_add_string(char *str)
+{
+	if (num_string_descriptors < MAX_STRING_DESCS)
+	{
+		string_descriptors[num_string_descriptors++] = str;
+		return num_string_descriptors;
+	}
+	else
+	{
+		return 0;
 	}
 }
 
@@ -281,10 +269,9 @@ void usb_config_init(void)
 	setup_in_ep = usb_add_in_ep(EP_TYPE_CONTROL, 64, 0x18, NULL, NULL);
 	usb_set_tx_callback(setup_in_ep, &tx_done);
 
-	string_descriptors[2] = sys_get_serial();
+	device_descriptor.iManufacturer = usb_config_add_string(USB_MANUFACTURER_STR);
+	device_descriptor.iProduct = usb_config_add_string(USB_PRODUCT_STR);
+	device_descriptor.iSerialNumber = usb_config_add_string(sys_get_serial());
 
-	for (int i = 0; i < MAX_CONF_DESCS; i++)
-		usb_conf_descriptors[i] = NULL;
-
-	usb_conf_descriptors[0] = (usb_descriptor *)&configuration_descriptor;
+	usb_config_add_descriptor((usb_descriptor *)&configuration_descriptor);
 }
