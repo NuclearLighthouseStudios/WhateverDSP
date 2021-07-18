@@ -81,6 +81,7 @@ struct usb_out_endpoint
 extern void usb_init(void);
 extern void usb_start(void);
 extern void usb_reset(void);
+extern void usb_reset_sync(void);
 extern void usb_configure(void);
 
 extern void usb_process(void);

@@ -14,6 +14,9 @@
 static usb_in_endpoint __CCMRAM in_eps[USB_PHY_NUM_EPS];
 static usb_out_endpoint __CCMRAM out_eps[USB_PHY_NUM_EPS];
 
+static bool __CCMRAM do_reset = false;
+static bool __CCMRAM do_configure = false;
+
 
 void usb_transmit(uint8_t *buf, size_t size, usb_in_endpoint *ep)
 {
@@ -126,8 +129,12 @@ void usb_set_tx_callback(usb_in_endpoint *ep, usb_tx_callback callback)
 	ep->tx_callback = callback;
 }
 
-
 void usb_reset(void)
+{
+	do_reset = true;
+}
+
+void usb_reset_sync(void)
 {
 	usb_phy_reset();
 
@@ -162,26 +169,39 @@ void usb_reset(void)
 
 void usb_configure(void)
 {
-	for (int i = 1; i < USB_PHY_NUM_EPS; i++)
-	{
-		if (in_eps[i].active)
-			usb_phy_in_ep_init(&(in_eps[i]));
-		if (out_eps[i].active)
-			usb_phy_out_ep_init(&(out_eps[i]));
-	}
-
-	for (int i = 0; i < USB_PHY_NUM_EPS; i++)
-	{
-		if ((out_eps[i].active) && (out_eps[i].start_callback))
-			out_eps[i].start_callback(&(out_eps[i]));
-
-		if ((in_eps[i].active) && (in_eps[i].start_callback))
-			in_eps[i].start_callback(&(in_eps[i]));
-	}
+	do_configure = true;
 }
 
 void usb_process(void)
 {
+	if (do_reset)
+	{
+		do_reset = false;
+		usb_reset_sync();
+	}
+
+	if (do_configure)
+	{
+		do_configure = false;
+
+		for (int i = 1; i < USB_PHY_NUM_EPS; i++)
+		{
+			if (in_eps[i].active)
+				usb_phy_in_ep_init(&(in_eps[i]));
+			if (out_eps[i].active)
+				usb_phy_out_ep_init(&(out_eps[i]));
+		}
+
+		for (int i = 0; i < USB_PHY_NUM_EPS; i++)
+		{
+			if ((out_eps[i].active) && (out_eps[i].start_callback))
+				out_eps[i].start_callback(&(out_eps[i]));
+
+			if ((in_eps[i].active) && (in_eps[i].start_callback))
+				in_eps[i].start_callback(&(in_eps[i]));
+		}
+	}
+
 	for (int i = 0; i < USB_PHY_NUM_EPS; i++)
 	{
 		if (out_eps[i].active)
@@ -223,6 +243,6 @@ void usb_init(void)
 
 void usb_start(void)
 {
-	usb_reset();
+	usb_reset_sync();
 	usb_phy_start();
 }
