@@ -21,6 +21,8 @@ static usb_out_endpoint __CCMRAM *setup_out_ep;
 static usb_descriptor __CCMRAM *usb_conf_descriptors[MAX_CONF_DESCS];
 static uint8_t __CCMRAM usb_conf_desc_buffer[MAX_CONF_DESC_SIZE];
 
+static bool __CCMRAM is_data_stage;
+
 
 static char *string_descriptors[] =
 {
@@ -77,7 +79,7 @@ static void send_descriptor(usb_descriptor *desc, size_t length)
 	usb_transmit((uint8_t *)desc, size, setup_in_ep);
 }
 
-static void usb_config_setup(usb_out_endpoint *ep, usb_setup_packet *packet)
+static void handle_setup(usb_out_endpoint *ep, usb_setup_packet *packet)
 {
 	switch (packet->bRequest)
 	{
@@ -218,11 +220,44 @@ static void usb_config_setup(usb_out_endpoint *ep, usb_setup_packet *packet)
 		}
 	}
 
-	// Do acknowledgement based on data direction
-	if (packet->bmRequest & 0x80)
-		usb_receive(NULL, 0, setup_out_ep);
+	if (packet->wLength > 0)
+	{
+		// if the package has data delay the status stage till it's been transferred
+		is_data_stage = true;
+	}
 	else
+	{
+		is_data_stage = false;
+
+		// Otherwise do acknowledgement based on data direction immediately
+		if (packet->bmRequest & 0x80)
+			usb_receive(NULL, 0, setup_out_ep);
+		else
+			usb_transmit(NULL, 0, setup_in_ep);
+	}
+}
+
+static void tx_done(usb_in_endpoint *ep, size_t count)
+{
+	if (is_data_stage)
+	{
+		is_data_stage = false;
+		usb_receive(NULL, 0, setup_out_ep);
+	}
+}
+
+static void rx_done(usb_out_endpoint *ep, uint8_t *buf, size_t count)
+{
+	if (is_data_stage)
+	{
+		is_data_stage = false;
 		usb_transmit(NULL, 0, setup_in_ep);
+	}
+}
+
+static void out_start(usb_out_endpoint *ep)
+{
+	is_data_stage = false;
 }
 
 void usb_config_add_descriptor(usb_descriptor *desc)
@@ -239,9 +274,12 @@ void usb_config_add_descriptor(usb_descriptor *desc)
 
 void usb_config_init(void)
 {
+	setup_out_ep = usb_add_out_ep(EP_TYPE_CONTROL, 64, &out_start, NULL);
+	usb_set_setup_callback(setup_out_ep, &(handle_setup));
+	usb_set_rx_callback(setup_out_ep, &rx_done);
+
 	setup_in_ep = usb_add_in_ep(EP_TYPE_CONTROL, 64, 0x18, NULL, NULL);
-	setup_out_ep = usb_add_out_ep(EP_TYPE_CONTROL, 64, NULL, NULL);
-	usb_set_setup_callback(setup_out_ep, &(usb_config_setup));
+	usb_set_tx_callback(setup_in_ep, &tx_done);
 
 	string_descriptors[2] = sys_get_serial();
 
