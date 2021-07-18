@@ -21,7 +21,6 @@ static usb_out_endpoint __CCMRAM *setup_out_ep;
 
 static usb_descriptor __CCMRAM *conf_descriptors[MAX_CONF_DESCS];
 static uint8_t __CCMRAM conf_desc_buffer[MAX_CONF_DESC_SIZE];
-
 static int __CCMRAM num_interfaces = 0;
 static int __CCMRAM num_conf_descriptors = 0;
 
@@ -29,8 +28,7 @@ static int __CCMRAM num_conf_descriptors = 0;
 #define MAX_STRING_DESCS 64
 
 static char *string_descriptors[MAX_STRING_DESCS];
-
-static int __CCMRAM num_string_descriptors = 2;
+static int __CCMRAM num_string_descriptors = 0;
 
 
 static bool __CCMRAM is_data_stage;
@@ -247,7 +245,7 @@ void usb_config_add_descriptor(usb_descriptor *desc)
 	}
 }
 
-int  usb_config_add_string(char *str)
+int usb_config_add_string(char *str)
 {
 	if (num_string_descriptors < MAX_STRING_DESCS)
 	{

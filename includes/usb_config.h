@@ -96,5 +96,6 @@ typedef struct __PACKED
 
 extern void usb_config_init(void);
 extern void usb_config_add_descriptor(usb_descriptor *desc);
+extern int usb_config_add_string(char *str);
 
 #endif
