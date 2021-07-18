@@ -241,7 +241,10 @@ void usb_config_add_descriptor(usb_descriptor *desc)
 		conf_descriptors[num_conf_descriptors++] = desc;
 
 		if (desc->bDescriptorType == 0x04)
+		{
+			((usb_interface_descriptor *)desc)->bInterfaceNumber = num_interfaces;
 			num_interfaces++;
+		}
 	}
 }
 
