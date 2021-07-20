@@ -15,54 +15,18 @@
 static usb_in_endpoint __CCMRAM *setup_in_ep;
 static usb_out_endpoint __CCMRAM *setup_out_ep;
 
-
-#define MAX_CONF_DESCS 64
-#define MAX_CONF_DESC_SIZE 1024
-
-static usb_descriptor __CCMRAM *conf_descriptors[MAX_CONF_DESCS];
-static uint8_t __CCMRAM conf_desc_buffer[MAX_CONF_DESC_SIZE];
+static usb_descriptor __CCMRAM *conf_descriptors[USB_CONFIG_MAX_CONF_DESCS];
+static uint8_t __CCMRAM conf_desc_buffer[USB_CONFIG_MAX_CONF_DESC_SIZE];
 static int __CCMRAM num_interfaces = 0;
 static int __CCMRAM num_conf_descriptors = 0;
 
-
-#define MAX_STRING_DESCS 64
-
-static char *string_descriptors[MAX_STRING_DESCS];
+static char *string_descriptors[USB_CONFIG_MAX_STRING_DESCS];
 static int __CCMRAM num_string_descriptors = 0;
 
+static usb_device_descriptor __CCMRAM device_descriptor = USB_DEVICE_DESCRIPTOR_INIT(USB_VID, USB_PID, USB_DEVICE_VER);
+static usb_configuration_descriptor __CCMRAM configuration_descriptor = USB_CONFIGURATION_DESCRIPTOR_INIT();
 
 static bool __CCMRAM is_data_stage;
-
-
-static usb_device_descriptor __CCMRAM device_descriptor =
-{
-	.bLength = 18,
-	.bDescriptorType = 0x01,
-	.bcdUSB = 0x0110,
-
-	.bDeviceClass = 0x00,
-	.bDeviceSubClass = 0x00,
-	.bDeviceProtocol = 0x00,
-	.bMaxPacketSize = 64,
-
-	.idVendor = USB_VID,
-	.idProduct = USB_DID,
-	.bcdDevice = USB_DEVICE_VER,
-
-	.bNumConfigurations = 1,
-};
-
-static usb_configuration_descriptor __CCMRAM configuration_descriptor =
-{
-	.bLength = 9,
-	.bDescriptorType = 0x02,
-
-	.bConfigurationValue = 1,
-	.iConfiguration = 0,
-	.bmAttributes = 0b11000000,
-	.bMaxPower = 0,
-};
-
 
 static void send_descriptor(usb_descriptor *desc, size_t length)
 {
@@ -236,7 +200,7 @@ static void out_start(usb_out_endpoint *ep)
 
 void usb_config_add_descriptor(usb_descriptor *desc)
 {
-	if (num_conf_descriptors < MAX_CONF_DESCS)
+	if (num_conf_descriptors < USB_CONFIG_MAX_CONF_DESCS)
 	{
 		conf_descriptors[num_conf_descriptors++] = desc;
 
@@ -250,7 +214,7 @@ void usb_config_add_descriptor(usb_descriptor *desc)
 
 int usb_config_add_string(char *str)
 {
-	if (num_string_descriptors < MAX_STRING_DESCS)
+	if (num_string_descriptors < USB_CONFIG_MAX_STRING_DESCS)
 	{
 		string_descriptors[num_string_descriptors++] = str;
 		return num_string_descriptors;

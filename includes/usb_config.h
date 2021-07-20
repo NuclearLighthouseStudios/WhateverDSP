@@ -5,11 +5,16 @@
 
 #include "cmsis_compiler.h"
 
+#define USB_CONFIG_MAX_CONF_DESCS 64
+#define USB_CONFIG_MAX_CONF_DESC_SIZE 1024
+#define USB_CONFIG_MAX_STRING_DESCS 64
+
 typedef struct __PACKED
 {
 	uint8_t bLength;
 	uint8_t bDescriptorType;
 } usb_descriptor;
+
 
 typedef struct __PACKED
 {
@@ -33,6 +38,28 @@ typedef struct __PACKED
 	uint8_t bNumConfigurations;
 } usb_device_descriptor;
 
+#define USB_DEVICE_DESCRIPTOR_INIT(vid, pid, device_ver) \
+{\
+	.bLength = 18,\
+	.bDescriptorType = 0x01,\
+	.bcdUSB = 0x0110,\
+\
+	.bDeviceClass = 0x00,\
+	.bDeviceSubClass = 0x00,\
+	.bDeviceProtocol = 0x00,\
+	.bMaxPacketSize = 64,\
+\
+	.idVendor = vid,\
+	.idProduct = pid,\
+	.bcdDevice = device_ver,\
+	.iManufacturer = 0,\
+	.iProduct = 0,\
+	.iSerialNumber = 0,\
+\
+	.bNumConfigurations = 1,\
+}
+
+
 typedef struct __PACKED
 {
 	uint8_t bLength;
@@ -46,6 +73,21 @@ typedef struct __PACKED
 	uint8_t bmAttributes;
 	uint8_t bMaxPower;
 } usb_configuration_descriptor;
+
+#define USB_CONFIGURATION_DESCRIPTOR_INIT()\
+{\
+	.bLength = 9,\
+	.bDescriptorType = 0x02,\
+\
+	.wTotalLength = 9,\
+\
+	.bNumInterfaces = 0,\
+	.bConfigurationValue = 1,\
+	.iConfiguration = 0,\
+	.bmAttributes = 0b11000000,\
+	.bMaxPower = 0,\
+}
+
 
 typedef struct __PACKED
 {
@@ -62,6 +104,23 @@ typedef struct __PACKED
 
 	uint8_t  iInterface;
 } usb_interface_descriptor;
+
+#define USB_INTERFACE_DESCRIPTOR_INIT(num_endpoints, class, sub_class, protocol)\
+{\
+	.bLength = 9,\
+	.bDescriptorType = 0x04,\
+\
+	.bInterfaceNumber = 0,\
+	.bAlternateSetting = 0,\
+	.bNumEndpoints = num_endpoints,\
+\
+	.bInterfaceClass = class,\
+	.bInterfaceSubClass = sub_class,\
+	.bInterfaceProtocol = protocol,\
+\
+	.iInterface = 0,\
+}
+
 
 typedef struct __PACKED
 {
@@ -82,6 +141,16 @@ typedef struct __PACKED
 
 	uint8_t bInterval;
 } usb_endpoint_descriptor;
+
+#define USB_ENDPOINT_DESCRIPTOR_INIT_BULK(endpoint_address, max_packet_size)\
+{\
+	.bLength = 7,\
+	.bDescriptorType = 0x05,\
+\
+	.bEndpointAddress = endpoint_address,\
+	.bmAttributes.type = EP_TYPE_BULK,\
+	.wMaxPacketSize = max_packet_size,\
+}
 
 
 #define USB_CONFIG_MAX_STR_DESC_LENGTH 64
