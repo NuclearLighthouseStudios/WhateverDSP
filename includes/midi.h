@@ -1,30 +1,36 @@
 #ifndef __MIDI_H
 #define __MIDI_H
 
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+
+#define MIDI_MAX_INTERFACES 8
+
 typedef struct
 {
-	unsigned char note;
-	unsigned char velocity;
+	uint8_t note;
+	uint8_t velocity;
 
 } midi_note_message;
 
 typedef struct
 {
-	unsigned char param;
-	unsigned char value;
+	uint8_t param;
+	uint8_t value;
 
 } midi_cc_message;
 
 typedef struct
 {
-	unsigned char lsb;
-	unsigned char msb;
+	uint8_t lsb;
+	uint8_t msb;
 
 } midi_pitchbend_message;
 
 typedef struct
 {
-	unsigned char pressure;
+	uint8_t pressure;
 
 } midi_aftertouch_message;
 
@@ -43,7 +49,8 @@ typedef struct
 {
 	midi_command command;
 	int channel;
-	int length;
+	uint32_t interface_mask;
+	size_t length;
 	union
 	{
 		midi_note_message note;
@@ -53,9 +60,24 @@ typedef struct
 	} data;
 } midi_message;
 
+
+typedef void (*midi_transmit_func)(midi_message *message);
+typedef bool (*midi_can_transmit_func)(void);
+
+typedef struct
+{
+	int interface_num;
+
+	midi_transmit_func transmit;
+	midi_can_transmit_func can_transmit;
+} midi_interface;
+
+
 extern void midi_init(void);
 
-extern void midi_receive(unsigned char data);
+extern int midi_add_interface(midi_transmit_func transmit, midi_can_transmit_func can_transmit);
+
+extern void midi_receive(midi_message *message);
 extern void midi_transmit(void);
 
 extern midi_message *midi_get_message(void);

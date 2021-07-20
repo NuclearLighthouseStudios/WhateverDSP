@@ -2,6 +2,7 @@
 #define __USB_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 typedef struct __PACKED
 {

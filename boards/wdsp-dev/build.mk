@@ -4,6 +4,8 @@ src/wdsp.c \
 src/midi.c \
 src/usb.c \
 src/usb_config.c \
+src/usb_uac.c \
+src/midi_usb.c \
 boards/$(BOARD)/main.c \
 cores/$(CORE)/src/system.c \
 cores/$(CORE)/src/io.c\
