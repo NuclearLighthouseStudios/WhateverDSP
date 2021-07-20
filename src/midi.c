@@ -1,92 +1,36 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include "core.h"
+#include "board.h"
+
 #include "midi.h"
 
-#include "midi_phy.h"
-
 #define RXQ_LENGTH 16
-#define MIDI_DATA_MAXLEN 2
-
-static midi_message __attribute__((section(".ccmram"))) midi_rx_queue[RXQ_LENGTH];
-static int __attribute__((section(".ccmram"))) rxq_read_pos = 0;
-static int __attribute__((section(".ccmram"))) rxq_write_pos = 0;
-
-static midi_command __attribute__((section(".ccmram"))) midi_current_command = 0;
-static unsigned int __attribute__((section(".ccmram"))) midi_current_channel;
-static unsigned char __attribute__((section(".ccmram"))) midi_data_buffer[MIDI_DATA_MAXLEN];
-static unsigned int __attribute__((section(".ccmram"))) midi_data_length;
+static midi_message __CCMRAM midi_rx_queue[RXQ_LENGTH];
+static int __CCMRAM rxq_read_pos = 0;
+static int __CCMRAM rxq_write_pos = 0;
 
 #define TXQ_LENGTH 16
-#define TX_BUFFER_LENGTH 8
+static midi_message __CCMRAM midi_tx_queue[TXQ_LENGTH];
+static int __CCMRAM txq_read_pos = 0;
+static int __CCMRAM txq_write_pos = 0;
 
-static midi_message __attribute__((section(".ccmram"))) midi_tx_queue[TXQ_LENGTH];
-static int __attribute__((section(".ccmram"))) txq_read_pos = 0;
-static int __attribute__((section(".ccmram"))) txq_write_pos = 0;
+static midi_interface __CCMRAM interfaces[MIDI_MAX_INTERFACES];
+static int __CCMRAM num_interfaces = 0;
 
-static unsigned char midi_tx_buffer[TX_BUFFER_LENGTH];
 
-static inline int get_message_length(midi_command command)
+void midi_receive(midi_message *message)
 {
-	switch (command)
+	memcpy(&(midi_rx_queue[rxq_write_pos]), message, sizeof(*message));
+
+	rxq_write_pos++;
+	rxq_write_pos %= RXQ_LENGTH;
+
+	if (rxq_read_pos == rxq_write_pos)
 	{
-	case PROGRAM_CHANGE:
-	case AFTERTOUCH:
-	default:
-		return 1;
-
-	case NOTE_ON:
-	case NOTE_OFF:
-	case POLY_AFTERTOUCH:
-	case CONTROL_CHANGE:
-	case PITCHBEND:
-		return 2;
-	}
-}
-
-void midi_receive(unsigned char data)
-{
-	if (data & 0x80)
-	{
-		midi_current_command = (data & 0xf0) >> 0x04;
-		midi_current_channel = data & 0x0f;
-		midi_data_length = 0;
-	}
-	else
-	{
-		// Ignore all system common and realtime messages,
-		// also ignore data when we don't have a valid command yet
-		if ((midi_current_command == 0x0f) || (midi_current_command == 0x00))
-			return;
-
-		if (midi_data_length < MIDI_DATA_MAXLEN)
-		{
-			midi_data_buffer[midi_data_length] = data;
-			midi_data_length++;
-		}
-
-		int data_len = get_message_length(midi_current_command);
-
-		if (midi_data_length == data_len)
-		{
-			midi_message *message = &(midi_rx_queue[rxq_write_pos]);
-
-			message->length = midi_data_length;
-			message->command = midi_current_command;
-			message->channel = midi_current_channel;
-			memcpy(&(message->data), midi_data_buffer, midi_data_length);
-
-			midi_data_length = 0;
-
-			rxq_write_pos++;
-			rxq_write_pos %= RXQ_LENGTH;
-
-			if (rxq_read_pos == rxq_write_pos)
-			{
-				rxq_read_pos++;
-				rxq_read_pos %= RXQ_LENGTH;
-			}
-		}
+		rxq_read_pos++;
+		rxq_read_pos %= RXQ_LENGTH;
 	}
 }
 
@@ -95,19 +39,22 @@ void midi_transmit(void)
 	if (txq_read_pos == txq_write_pos)
 		return;
 
-	if (!midi_phy_can_transmit())
-		return;
-
 	midi_message *message = &(midi_tx_queue[txq_read_pos]);
+
+	for (int i = 0; i < num_interfaces; i++)
+	{
+		if (((message->interface_mask & (0b1 << i)) == 0) && (!interfaces[i].can_transmit()))
+			return;
+	}
 
 	txq_read_pos++;
 	txq_read_pos %= TXQ_LENGTH;
 
-	midi_tx_buffer[0] = (message->command << 0x04) | (message->channel & 0x0f);
-
-	memcpy(&midi_tx_buffer[1], &(message->data), message->length);
-
-	midi_phy_transmit(midi_tx_buffer, message->length + 1);
+	for (int i = 0; i < num_interfaces; i++)
+	{
+		if ((message->interface_mask & (0b1 << i)) == 0)
+			interfaces[i].transmit(message);
+	}
 }
 
 midi_message *midi_get_message(void)
@@ -144,7 +91,17 @@ void midi_send_message(midi_message tx_message)
 	midi_transmit();
 }
 
+int midi_add_interface(midi_transmit_func transmit, midi_can_transmit_func can_transmit)
+{
+	interfaces[num_interfaces].interface_num = num_interfaces;
+	interfaces[num_interfaces].transmit = transmit;
+	interfaces[num_interfaces].can_transmit = can_transmit;
+	num_interfaces++;
+
+	return num_interfaces - 1;
+}
+
 void midi_init(void)
 {
-	midi_phy_init();
+	return;
 }

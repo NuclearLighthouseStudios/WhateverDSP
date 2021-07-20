@@ -3,7 +3,7 @@
 
 #include "stm32f4xx.h"
 
-static inline void midi_phy_setup(void)
+static inline void midi_uart_setup(void)
 {
 	// Set up pins
 	MODIFY_REG(GPIOB->MODER, GPIO_MODER_MODER7_Msk, 0b10 << GPIO_MODER_MODER7_Pos);
