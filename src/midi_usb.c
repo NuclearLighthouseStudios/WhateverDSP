@@ -4,6 +4,7 @@
 #include "board.h"
 #include "core.h"
 
+#include "system.h"
 #include "usb.h"
 #include "usb_config.h"
 #include "usb_uac.h"
@@ -37,6 +38,9 @@ static usb_midi_endpoint_descriptor __CCMRAM midi_out_desc = USB_MIDI_ENDPOINT_D
 static bool tx_ready __CCMRAM = false;
 static bool tx_started __CCMRAM = false;
 
+#define TX_TIMEOUT_TIME 100
+static uint32_t tx_timeout __CCMRAM;
+
 static int midi_interface_num __CCMRAM = 0;
 
 static void tx_callback(usb_in_endpoint *ep, size_t count)
@@ -46,35 +50,67 @@ static void tx_callback(usb_in_endpoint *ep, size_t count)
 
 static void rx_callback(usb_out_endpoint *ep, uint8_t *buf, size_t count)
 {
+	static midi_command __CCMRAM midi_current_command = 0;
+	static unsigned int __CCMRAM midi_current_channel;
+
+	int cin = *buf++ & 0x0f;
 	int length;
-	int cin = buf[0] & 0x0f;
 
-	if ((cin >= 0x08) && (cin <= 0x0e))
+	switch (cin)
 	{
-		switch (cin)
-		{
-			case 0x0c:
-			case 0x0d:
-				length = 2;
-				break;
+		case 0x05:
+		case 0x0f:
+			length = 1;
+			break;
 
-			default:
-				length = 3;
+		case 0x02:
+		case 0x06:
+		case 0x0c:
+		case 0x0d:
+			length = 2;
+			break;
+
+		default:
+			length = 3;
+	}
+
+	midi_message message;
+
+	if (buf[0] & 0x80)
+	{
+		if ((buf[0] & 0xf0) != 0xf0)
+		{
+			midi_current_command = buf[0] & 0xf0;
+			midi_current_channel = buf[0] & 0x0f;
+		}
+		else
+		{
+			midi_current_command = buf[0];
+			midi_current_channel = 0;
 		}
 
-		midi_message message;
+		buf++;
+		length--;
+	}
 
-		int command = (buf[1] & 0xf0) >> 0x04;
-		int channel = buf[1] & 0x0f;
+	message.interface_mask = 0b1 << midi_interface_num;
+	message.command = midi_current_command;
+	message.channel = midi_current_channel;
 
-		message.interface_mask = 0b1 << midi_interface_num;
-		message.length = length - 1;
-		message.command = command;
-		message.channel = channel;
-		memcpy(&(message.data), buf + 2, length - 1);
-
+	if (midi_current_command != SYSEX)
+	{
+		memcpy(&(message.data), buf, length);
 		midi_receive(&message);
 	}
+	else
+	{
+		for (int i = 0; i < length; i++)
+		{
+			message.data.sysex.data = buf[i];
+			midi_receive(&message);
+		}
+	}
+
 
 	usb_receive(rx_buf, RX_BUF_SIZE, ep);
 }
@@ -98,24 +134,104 @@ static void out_start(usb_out_endpoint *ep)
 
 static void midi_usb_transmit(midi_message *message)
 {
-	if (!tx_started)
+	static uint8_t __CCMRAM sysex_buffer[3];
+	static size_t __CCMRAM sysex_length = 0;
+	static bool __CCMRAM sysex_started = false;
+
+	if ((!tx_started) || ((sys_ticks - tx_timeout > TX_TIMEOUT_TIME) && (!tx_ready)))
 		return;
 
 	tx_ready = false;
+	tx_timeout = sys_ticks;
 
-	uint8_t cin = message->command;
+	uint8_t cin;
 
-	tx_buf[0] = cin & 0x0f;
-	tx_buf[1] = (message->command << 0x04) | (message->channel & 0x0f);
+	switch (message->command)
+	{
+		case TIME_CODE:
+		case SONG_SELECT:
+			cin = 0x02;
+			break;
 
-	memcpy(tx_buf + 2, &(message->data), message->length);
+		case SONG_POSITION:
+			cin = 0x03;
+			break;
 
-	usb_transmit(tx_buf, message->length + 2, midi_in_ep);
+		case SYSEX:
+			cin = 0x04;
+			break;
+
+		case SYSEX_END:
+		case TUNE_REQUEST:
+			cin = 0x05;
+
+		case CLOCK:
+		case START:
+		case CONTINUE:
+		case STOP:
+		case ACTIVE_SENSE:
+		case SYS_RESET:
+			cin = 0x0f;
+
+		default:
+			cin = message->command >> 0x04;
+	}
+
+	if (message->command == SYSEX)
+	{
+		if (!sysex_started)
+		{
+			sysex_length = 0;
+			sysex_started = true;
+			sysex_buffer[sysex_length++] = message->command;
+		}
+
+		sysex_buffer[sysex_length++] = message->data.sysex.data;
+
+		if (sysex_length == 3)
+		{
+			tx_buf[0] = cin & 0x0f;
+			memcpy(tx_buf + 1, sysex_buffer, sysex_length);
+			usb_transmit(tx_buf, sysex_length + 1, midi_in_ep);
+			sysex_length = 0;
+		}
+	}
+	else if ((sysex_started) && (message->command == SYSEX_END))
+	{
+		sysex_started = false;
+
+		tx_buf[0] = (cin + sysex_length) & 0x0f;
+
+		memcpy(tx_buf + 1, sysex_buffer, sysex_length);
+
+		tx_buf[sysex_length + 1] = message->command;
+
+		usb_transmit(tx_buf, sysex_length + 2, midi_in_ep);
+		sysex_length = 0;
+	}
+	else
+	{
+		tx_buf[0] = cin & 0x0f;
+
+		if ((message->command & 0xf0) != 0xf0)
+			tx_buf[1] = (message->command & 0xf0) | (message->channel & 0x0f);
+		else
+			tx_buf[1] = message->command;
+
+		size_t length = midi_get_message_length(message->command);
+
+		memcpy(tx_buf + 2, &(message->data), length);
+
+		usb_transmit(tx_buf, length + 2, midi_in_ep);
+	}
 }
 
 static bool midi_usb_can_transmit(void)
 {
-	return tx_ready;
+	if (tx_ready)
+		return true;
+	else
+		return sys_ticks - tx_timeout > TX_TIMEOUT_TIME;
 }
 
 void midi_usb_init(void)

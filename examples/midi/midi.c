@@ -1,36 +1,27 @@
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
 #include <libwdsp.h>
 
 bool trigger_state = false;
+bool trigger = false;
 int last_note = -1;
 
-const int scale[] = {0, 3, 5, 7, 10};
+const int scale[] = { 0, 3, 5, 7, 10 };
 
 #define STEPS 4
 
 int step = 0;
 int melody[STEPS];
 
-void wdsp_init(unsigned long int _sample_rate)
-{
-	midi_message message;
+float last_sust = -1;
 
-	message.command = CONTROL_CHANGE;
-	message.channel = 0;
-	message.length = 2;
-	message.data.control.param = 64;
-	message.data.note.velocity = 128;
-
-	midi_send_message(message);
-}
+int clock_count = 1;
 
 void wdsp_process(float in_buffer[][2], float out_buffer[][2], unsigned long int nBlocks)
 {
-	bool trigger = false;
-
 	for (int i = 0; i < nBlocks; i++)
 	{
 		float l_samp = in_buffer[i][0];
@@ -44,8 +35,41 @@ void wdsp_process(float in_buffer[][2], float out_buffer[][2], unsigned long int
 		out_buffer[i][0] = 0;
 		out_buffer[i][1] = 0;
 	}
+}
+
+void wdsp_idle(void)
+{
+	float sustain = io_analog_in(POT_1);
+
+	if (fabs(sustain - last_sust) > 1.0f / 127.0f)
+	{
+		last_sust = sustain;
+
+		midi_message message;
+
+		message.command = CONTROL_CHANGE;
+		message.channel = 0;
+		message.data.control.param = 64;
+		message.data.control.value = sustain * 127.0f;
+
+		midi_send_message(&message);
+	}
 
 	trigger |= io_digital_in(BUTTON_1);
+
+	int divider = powf(2, floor(((1.0f - io_analog_in(POT_2)) * 1.1f) * 4 + 1));
+
+	midi_message *rx_message;
+	if ((rx_message = midi_get_message()) != NULL)
+	{
+		if (rx_message->command == CLOCK)
+		{
+			clock_count++;
+		}
+	}
+
+	if (clock_count % divider == 0)
+		trigger = true;
 
 	if (trigger != trigger_state)
 	{
@@ -75,10 +99,11 @@ void wdsp_process(float in_buffer[][2], float out_buffer[][2], unsigned long int
 		}
 
 		message.channel = 0;
-		message.length = 2;
 		message.data.note.note = last_note;
-		message.data.note.velocity = 40+rand()%40;
+		message.data.note.velocity = 40 + rand() % 40;
 
-		midi_send_message(message);
+		midi_send_message(&message);
 	}
+
+	trigger = false;
 }

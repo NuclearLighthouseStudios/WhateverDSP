@@ -5,7 +5,7 @@ typedef enum
 {
 	USB_MIDI_JACK_EMBEDDED = 0x01,
 	USB_MIDI_JACK_EXTERNAL = 0x02,
-} midi_jack_type;
+} usb_midi_jack_type;
 
 
 typedef struct __PACKED

@@ -7,16 +7,12 @@
 #include "board.h"
 
 #include "midi.h"
-
-#include "midi.h"
 #include "midi_uart.h"
+
 #include "conf/midi_uart.h"
 
 #define RX_BUFFER_LENGTH 4
 static uint8_t __CCMRAM midi_rx_buffer[RX_BUFFER_LENGTH];
-static midi_command __CCMRAM midi_current_command = 0;
-static unsigned int __CCMRAM midi_current_channel;
-static size_t __CCMRAM midi_data_length;
 
 #define TX_BUFFER_LENGTH 8
 static uint8_t midi_tx_buffer[TX_BUFFER_LENGTH];
@@ -25,14 +21,36 @@ static int midi_interface_num __CCMRAM = 0;
 
 static void midi_uart_transmit(midi_message *message)
 {
-	midi_tx_buffer[0] = (message->command << 0x04) | (message->channel & 0x0f);
+	static midi_command __CCMRAM current_command = 0;
+	static unsigned int __CCMRAM current_channel = 0;
 
-	memcpy(midi_tx_buffer + 1, &(message->data), message->length);
+	size_t length = midi_get_message_length(message->command);
+
+	if ((message->command != current_command) || (message->channel != current_channel))
+	{
+		if (length > 0)
+		{
+			current_command = message->command;
+			current_channel = message->channel;
+		}
+
+		if ((message->command & 0xf0) != 0xf0)
+			midi_tx_buffer[0] = (message->command & 0xf0) | (message->channel & 0x0f);
+		else
+			midi_tx_buffer[0] = message->command;
+
+		memcpy(midi_tx_buffer + 1, &(message->data), length);
+		length += 1;
+	}
+	else
+	{
+		memcpy(midi_tx_buffer, &(message->data), length);
+	}
 
 	// Set base addresses
 	MIDI_DMA_STREAM->M0AR = (uint32_t)(midi_tx_buffer);
 	MIDI_DMA_STREAM->PAR = (uint32_t)(&(MIDI_UART->DR));
-	MIDI_DMA_STREAM->NDTR = (uint16_t)(message->length + 1);
+	MIDI_DMA_STREAM->NDTR = (uint16_t)(length);
 
 	// Clear DMA transfer complete flag
 	SET_BIT(MIDI_DMA->MIDI_DMA_TC_FLAG_REG, MIDI_DMA_TC_FLAG);
@@ -41,58 +59,61 @@ static void midi_uart_transmit(midi_message *message)
 	SET_BIT(MIDI_DMA_STREAM->CR, DMA_SxCR_EN);
 }
 
-static inline int get_message_length(midi_command command)
-{
-	switch (command)
-	{
-		case PROGRAM_CHANGE:
-		case AFTERTOUCH:
-		default:
-			return 1;
-
-		case NOTE_ON:
-		case NOTE_OFF:
-		case POLY_AFTERTOUCH:
-		case CONTROL_CHANGE:
-		case PITCHBEND:
-			return 2;
-	}
-}
-
 static void midi_uart_receive(uint8_t data)
 {
+	static midi_command __CCMRAM current_command = 0;
+	static unsigned int __CCMRAM current_channel;
+	static size_t __CCMRAM data_length;
+
 	if (data & 0x80)
 	{
-		midi_current_command = (data & 0xf0) >> 0x04;
-		midi_current_channel = data & 0x0f;
-		midi_data_length = 0;
-	}
-	else
-	{
-		// Ignore all system common and realtime messages,
-		// also ignore data when we don't have a valid command yet
-		if ((midi_current_command == 0x0f) || (midi_current_command == 0x00))
-			return;
-
-		if (midi_data_length < RX_BUFFER_LENGTH)
-		{
-			midi_rx_buffer[midi_data_length] = data;
-			midi_data_length++;
-		}
-
-		size_t data_len = get_message_length(midi_current_command);
-
-		if (midi_data_length == data_len)
+		if (midi_get_message_length(data) == 0)
 		{
 			midi_message message;
 
 			message.interface_mask = 0b1 << midi_interface_num;
-			message.length = midi_data_length;
-			message.command = midi_current_command;
-			message.channel = midi_current_channel;
-			memcpy(&(message.data), midi_rx_buffer, midi_data_length);
+			message.command = data;
+			message.channel = 0;
 
-			midi_data_length = 0;
+			midi_receive(&message);
+		}
+		else
+		{
+			if ((data & 0xf0) != 0xf0)
+			{
+				current_command = data & 0xf0;
+				current_channel = data & 0x0f;
+			}
+			else
+			{
+				current_command = data;
+				current_channel = 0;
+			}
+
+			data_length = 0;
+		}
+	}
+	else
+	{
+		// ignore data when we don't have a valid command yet
+		if (current_command == 0x00)
+			return;
+
+		if (data_length < RX_BUFFER_LENGTH)
+			midi_rx_buffer[data_length++] = data;
+
+		size_t data_len = midi_get_message_length(current_command);
+
+		if (data_length == data_len)
+		{
+			midi_message message;
+
+			message.interface_mask = 0b1 << midi_interface_num;
+			message.command = current_command;
+			message.channel = current_channel;
+			memcpy(&(message.data), midi_rx_buffer, data_length);
+
+			data_length = 0;
 
 			midi_receive(&message);
 		}
