@@ -48,69 +48,89 @@ static void tx_callback(usb_in_endpoint *ep, size_t count)
 	tx_ready = true;
 }
 
-static void rx_callback(usb_out_endpoint *ep, uint8_t *buf, size_t count)
+static void rx_callback(usb_out_endpoint *ep, uint8_t *rx_buf, size_t count)
 {
 	static midi_command __CCMRAM midi_current_command = 0;
 	static unsigned int __CCMRAM midi_current_channel;
 
-	int cin = *buf++ & 0x0f;
-	int length;
-
-	switch (cin)
+	for (int i = 0; i < count;i += 4)
 	{
-		case 0x05:
-		case 0x0f:
-			length = 1;
-			break;
+		uint8_t *buf = rx_buf + i;
+		int cin = *buf++ & 0x0f;
+		int length;
 
-		case 0x02:
-		case 0x06:
-		case 0x0c:
-		case 0x0d:
-			length = 2;
-			break;
-
-		default:
-			length = 3;
-	}
-
-	midi_message message;
-
-	if (buf[0] & 0x80)
-	{
-		if ((buf[0] & 0xf0) != 0xf0)
+		switch (cin)
 		{
-			midi_current_command = buf[0] & 0xf0;
-			midi_current_channel = buf[0] & 0x0f;
+			case 0x05:
+			case 0x0f:
+				length = 1;
+				break;
+
+			case 0x02:
+			case 0x06:
+			case 0x0c:
+			case 0x0d:
+				length = 2;
+				break;
+
+			default:
+				length = 3;
+		}
+
+		midi_message message;
+
+		if ((cin >= 0x05) && (cin <= 0x07))
+		{
+			midi_current_command = buf[--length];
+			midi_current_channel = 0;
+		}
+		else if (buf[0] & 0x80)
+		{
+			if ((buf[0] & 0xf0) != 0xf0)
+			{
+				midi_current_command = buf[0] & 0xf0;
+				midi_current_channel = buf[0] & 0x0f;
+			}
+			else
+			{
+				midi_current_command = buf[0];
+				midi_current_channel = 0;
+			}
+
+			buf++;
+			length--;
+		}
+
+		message.interface_mask = 0b1 << midi_interface_num;
+		message.command = midi_current_command;
+		message.channel = midi_current_channel;
+
+		if (midi_current_command == SYSEX)
+		{
+			for (int i = 0; i < length; i++)
+			{
+				message.data.sysex.data = buf[i];
+				midi_receive(&message);
+			}
+		}
+		else if (midi_current_command == SYSEX_END)
+		{
+			message.command = SYSEX;
+			for (int i = 0; i < length; i++)
+			{
+				message.data.sysex.data = buf[i];
+				midi_receive(&message);
+			}
+
+			message.command = SYSEX_END;
+			midi_receive(&message);
 		}
 		else
 		{
-			midi_current_command = buf[0];
-			midi_current_channel = 0;
-		}
-
-		buf++;
-		length--;
-	}
-
-	message.interface_mask = 0b1 << midi_interface_num;
-	message.command = midi_current_command;
-	message.channel = midi_current_channel;
-
-	if (midi_current_command != SYSEX)
-	{
-		memcpy(&(message.data), buf, length);
-		midi_receive(&message);
-	}
-	else
-	{
-		for (int i = 0; i < length; i++)
-		{
-			message.data.sysex.data = buf[i];
+			memcpy(&(message.data), buf, length);
 			midi_receive(&message);
 		}
 	}
-
 
 	usb_receive(rx_buf, RX_BUF_SIZE, ep);
 }
