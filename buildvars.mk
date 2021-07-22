@@ -3,6 +3,7 @@
 ######################################
 export OPT ?= -O3
 export DEBUG ?= false
+export PRINT_LOAD ?= true
 export BOARD ?= wdsp-dev
 
 
@@ -38,6 +39,11 @@ BIN = $(CP) -O binary -S
 # Enable debugging if selected
 ifeq ($(DEBUG), true)
 C_DEFS += -DDEBUG
+endif
+
+# Enable printing of CPU load if selected
+ifeq ($(PRINT_LOAD), true)
+C_DEFS += -DPRINT_LOAD
 endif
 
 # gcc flags

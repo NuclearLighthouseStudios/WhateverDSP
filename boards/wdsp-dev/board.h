@@ -1,8 +1,13 @@
 #ifndef __BOARD_H
 #define __BOARD_H
 
-#define BUFSIZE 64
-#define SAMPLE_RATE 48000
+#ifndef BLOCK_SIZE
+#define BLOCK_SIZE 32
+#endif
+
+#ifndef SAMPLE_RATE
+#define SAMPLE_RATE 50000
+#endif
 
 typedef enum io_pin_idx
 {

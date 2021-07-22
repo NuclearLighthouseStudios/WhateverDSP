@@ -10,21 +10,23 @@
 
 #include "audio.h"
 
-static int32_t i2s_adc_buffer[2][BUFSIZE * 2];
-static int32_t i2s_dac_buffer[2][BUFSIZE * 2];
+#include "conf/audio.h"
 
-static float __attribute__((section(".ccmram"))) in_buffers[2][BUFSIZE][2];
-static float __attribute__((section(".ccmram"))) out_buffers[2][BUFSIZE][2];
+static int32_t i2s_adc_buffer[2][BLOCK_SIZE * 2];
+static int32_t i2s_dac_buffer[2][BLOCK_SIZE * 2];
 
-static int __attribute__((section(".ccmram"))) in_buffer = 0;
-static int __attribute__((section(".ccmram"))) out_buffer = 0;
+static float __CCMRAM in_buffers[2][BLOCK_SIZE][2];
+static float __CCMRAM out_buffers[2][BLOCK_SIZE][2];
 
-static bool __attribute__((section(".ccmram"))) adc_ready = false;
-static bool __attribute__((section(".ccmram"))) dac_ready = false;
+static int __CCMRAM in_buffer = 0;
+static int __CCMRAM out_buffer = 0;
+
+static bool __CCMRAM adc_ready = false;
+static bool __CCMRAM dac_ready = false;
 
 static inline void audio_transfer_in(int in_buf, int dma_buf)
 {
-	for (int i = 0; i < BUFSIZE; i++)
+	for (int i = 0; i < BLOCK_SIZE; i++)
 	{
 		in_buffers[in_buf][i][0] = (((i2s_adc_buffer[dma_buf][i << 1] >> 16) & 0xffff) | ((i2s_adc_buffer[dma_buf][i << 1] & 0xffff) << 16)) / (float)INT32_MAX;
 		in_buffers[in_buf][i][1] = (((i2s_adc_buffer[dma_buf][(i << 1) + 1] >> 16) & 0xffff) | ((i2s_adc_buffer[dma_buf][(i << 1) + 1] & 0xffff) << 16)) / (float)INT32_MAX;
@@ -33,7 +35,7 @@ static inline void audio_transfer_in(int in_buf, int dma_buf)
 
 static inline void audio_transfer_out(int out_buf, int dma_buf)
 {
-	for (int i = 0; i < BUFSIZE; i++)
+	for (int i = 0; i < BLOCK_SIZE; i++)
 	{
 		int samp_l = out_buffers[out_buf][i][0] * (float)INT32_MAX;
 		int samp_r = out_buffers[out_buf][i][1] * (float)INT32_MAX;
@@ -66,7 +68,7 @@ void audio_process(void)
 	{
 		adc_ready = false;
 		dac_ready = false;
-		wdsp_process(in_buffers[in_buffer], out_buffers[out_buffer], BUFSIZE);
+		wdsp_process(in_buffers[in_buffer], out_buffers[out_buffer], BLOCK_SIZE);
 	}
 }
 
@@ -96,7 +98,7 @@ static void audio_init_I2S_out(void)
 	DMA1_Stream4->M0AR = (uint32_t)&i2s_dac_buffer[0];
 	DMA1_Stream4->M1AR = (uint32_t)&i2s_dac_buffer[1];
 	DMA1_Stream4->PAR = (uint32_t) & (SPI2->DR);
-	DMA1_Stream4->NDTR = (uint16_t)BUFSIZE * 4;
+	DMA1_Stream4->NDTR = (uint16_t)BLOCK_SIZE * 4;
 
 	// Enable transfer complete interrupts
 	SET_BIT(DMA1_Stream4->CR, DMA_SxCR_TCIE);
@@ -127,14 +129,11 @@ static void audio_init_I2S_out(void)
 
 	// Set I2S clock
 	MODIFY_REG(SPI2->I2SPR, SPI_I2SPR_MCKOE_Msk, 0b1 << SPI_I2SPR_MCKOE_Pos);
-	MODIFY_REG(SPI2->I2SPR, SPI_I2SPR_I2SDIV_Msk, 3 << SPI_I2SPR_I2SDIV_Pos);
-	MODIFY_REG(SPI2->I2SPR, SPI_I2SPR_ODD_Msk, 0b1 << SPI_I2SPR_ODD_Pos);
+	MODIFY_REG(SPI2->I2SPR, SPI_I2SPR_I2SDIV_Msk, I2SDIV << SPI_I2SPR_I2SDIV_Pos);
+	MODIFY_REG(SPI2->I2SPR, SPI_I2SPR_ODD_Msk, I2SODD << SPI_I2SPR_ODD_Pos);
 
 	// Enable DMA
 	SET_BIT(SPI2->CR2, SPI_CR2_TXDMAEN);
-
-	// Enable I2S preriphery
-	SET_BIT(SPI2->I2SCFGR, SPI_I2SCFGR_I2SE);
 }
 
 static void audio_init_I2S_in(void)
@@ -163,7 +162,7 @@ static void audio_init_I2S_in(void)
 	DMA1_Stream0->M0AR = (uint32_t)&i2s_adc_buffer[0];
 	DMA1_Stream0->M1AR = (uint32_t)&i2s_adc_buffer[1];
 	DMA1_Stream0->PAR = (uint32_t) & (SPI3->DR);
-	DMA1_Stream0->NDTR = (uint16_t)BUFSIZE * 4;
+	DMA1_Stream0->NDTR = (uint16_t)BLOCK_SIZE * 4;
 
 	// Enable transfer complete interrupts
 	SET_BIT(DMA1_Stream0->CR, DMA_SxCR_TCIE);
@@ -194,25 +193,26 @@ static void audio_init_I2S_in(void)
 
 	// Set I2S clock
 	MODIFY_REG(SPI3->I2SPR, SPI_I2SPR_MCKOE_Msk, 0b1 << SPI_I2SPR_MCKOE_Pos);
-	MODIFY_REG(SPI3->I2SPR, SPI_I2SPR_I2SDIV_Msk, 3 << SPI_I2SPR_I2SDIV_Pos);
-	MODIFY_REG(SPI3->I2SPR, SPI_I2SPR_ODD_Msk, 0b1 << SPI_I2SPR_ODD_Pos);
+	MODIFY_REG(SPI3->I2SPR, SPI_I2SPR_I2SDIV_Msk, I2SDIV << SPI_I2SPR_I2SDIV_Pos);
+	MODIFY_REG(SPI3->I2SPR, SPI_I2SPR_ODD_Msk, I2SODD << SPI_I2SPR_ODD_Pos);
 
 	// Enable DMA
 	SET_BIT(SPI3->CR2, SPI_CR2_RXDMAEN);
-
-	// Enable I2S preriphery
-	SET_BIT(SPI3->I2SCFGR, SPI_I2SCFGR_I2SE);
 }
 
 void audio_init(void)
 {
 	// Set up I2S clock
-	MODIFY_REG(RCC->PLLI2SCFGR, RCC_PLLI2SCFGR_PLLI2SR_Msk, 3 << RCC_PLLI2SCFGR_PLLI2SR_Pos);
-	MODIFY_REG(RCC->PLLI2SCFGR, RCC_PLLI2SCFGR_PLLI2SN_Msk, 129 << RCC_PLLI2SCFGR_PLLI2SN_Pos);
+	MODIFY_REG(RCC->PLLI2SCFGR, RCC_PLLI2SCFGR_PLLI2SR_Msk, PLLR << RCC_PLLI2SCFGR_PLLI2SR_Pos);
+	MODIFY_REG(RCC->PLLI2SCFGR, RCC_PLLI2SCFGR_PLLI2SN_Msk, PLLN << RCC_PLLI2SCFGR_PLLI2SN_Pos);
 	SET_BIT(RCC->CR, RCC_CR_PLLI2SON);
 	while (!READ_BIT(RCC->CR, RCC_CR_PLLI2SRDY))
 		__NOP();
 
 	audio_init_I2S_in();
 	audio_init_I2S_out();
+
+	// Enable both at the same time so their interrupts line up
+	SET_BIT(SPI2->I2SCFGR, SPI_I2SCFGR_I2SE);
+	SET_BIT(SPI3->I2SCFGR, SPI_I2SCFGR_I2SE);
 }

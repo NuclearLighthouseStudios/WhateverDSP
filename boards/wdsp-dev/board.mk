@@ -1,5 +1,12 @@
 CORE = stm32f405rgt
 
+export BLOCK_SIZE ?= 32
+export SAMPLE_RATE ?= 50000
+
+# Pass block size and sample rate to code
+C_DEFS += -DBLOCK_SIZE=$(BLOCK_SIZE)
+C_DEFS += -DSAMPLE_RATE=$(SAMPLE_RATE)
+
 # Only define these target when we're not building the library
 ifdef WDSP_PATH
 

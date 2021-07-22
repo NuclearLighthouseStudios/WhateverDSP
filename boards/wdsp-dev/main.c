@@ -18,11 +18,12 @@ int main(void)
 {
 	sys_init();
 	io_init();
-	audio_init();
 
 	usb_init();
 	usb_config_init();
 	usb_uac_init();
+
+	audio_init();
 
 	midi_init();
 	midi_uart_init();
@@ -31,6 +32,7 @@ int main(void)
 	usb_start();
 
 	puts("Hey there! {^-^}~");
+	printf("libWDSP running at %dhz with block size %d\n", SAMPLE_RATE, BLOCK_SIZE);
 
 	wdsp_init(SAMPLE_RATE);
 
