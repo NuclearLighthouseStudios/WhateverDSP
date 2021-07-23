@@ -16,6 +16,8 @@
 
 int main(void)
 {
+	static unsigned long int last_idle = 0;
+
 	sys_init();
 	io_init();
 
@@ -41,7 +43,12 @@ int main(void)
 		audio_process();
 		usb_process();
 
-		wdsp_idle();
+		if (sys_ticks != last_idle)
+		{
+			last_idle = sys_ticks;
+			wdsp_idle();
+		}
+
 		sys_idle();
 	}
 }
