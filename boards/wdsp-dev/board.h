@@ -2,11 +2,11 @@
 #define __BOARD_H
 
 #ifndef BLOCK_SIZE
-#define BLOCK_SIZE 32
+#define BLOCK_SIZE 16
 #endif
 
 #ifndef SAMPLE_RATE
-#define SAMPLE_RATE 50000
+#define SAMPLE_RATE 48000
 #endif
 
 typedef enum io_pin_idx

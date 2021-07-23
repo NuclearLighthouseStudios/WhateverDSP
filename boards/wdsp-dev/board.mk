@@ -1,7 +1,7 @@
 CORE = stm32f405rgt
 
-export BLOCK_SIZE ?= 32
-export SAMPLE_RATE ?= 50000
+export BLOCK_SIZE ?= 16
+export SAMPLE_RATE ?= 48000
 
 # Pass block size and sample rate to code
 C_DEFS += -DBLOCK_SIZE=$(BLOCK_SIZE)
