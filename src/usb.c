@@ -6,8 +6,9 @@
 #include "core.h"
 #include "board.h"
 
-#include "usb.h"
+#include "system.h"
 #include "usb_phy.h"
+#include "usb.h"
 
 #include "conf/usb_phy.h"
 
@@ -132,6 +133,7 @@ void usb_set_tx_callback(usb_in_endpoint *ep, usb_tx_callback callback)
 void usb_reset(void)
 {
 	do_reset = true;
+	sys_busy(1);
 }
 
 void usb_reset_sync(void)
@@ -170,6 +172,7 @@ void usb_reset_sync(void)
 void usb_configure(void)
 {
 	do_configure = true;
+	sys_busy(1);
 }
 
 void usb_process(void)

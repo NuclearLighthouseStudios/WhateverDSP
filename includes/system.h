@@ -6,6 +6,8 @@ volatile extern unsigned long int sys_ticks;
 extern void sys_init(void);
 extern void sys_idle(void);
 
+extern void sys_busy(int busyness);
+
 extern void sys_delay(unsigned long int delay);
 
 extern char *sys_get_serial(void);

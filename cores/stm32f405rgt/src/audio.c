@@ -8,6 +8,7 @@
 
 #include "wdsp.h"
 
+#include "system.h"
 #include "audio.h"
 
 #include "conf/audio.h"
@@ -21,8 +22,8 @@ static float __CCMRAM out_buffers[2][BLOCK_SIZE][2];
 static int __CCMRAM in_buffer = 0;
 static int __CCMRAM out_buffer = 0;
 
-static bool __CCMRAM adc_ready = false;
-static bool __CCMRAM dac_ready = false;
+static volatile bool __CCMRAM adc_ready = false;
+static volatile bool __CCMRAM dac_ready = false;
 
 static inline void audio_transfer_in(int in_buf, int dma_buf)
 {
@@ -50,7 +51,9 @@ void DMA1_Stream0_IRQHandler(void)
 
 	audio_transfer_in(!in_buffer, !READ_BIT(DMA1_Stream0->CR, DMA_SxCR_CT));
 	in_buffer = !in_buffer;
+
 	adc_ready = true;
+	sys_busy(2);
 }
 
 void DMA1_Stream4_IRQHandler(void)
@@ -59,7 +62,9 @@ void DMA1_Stream4_IRQHandler(void)
 
 	audio_transfer_out(!out_buffer, !READ_BIT(DMA1_Stream4->CR, DMA_SxCR_CT));
 	out_buffer = !out_buffer;
+
 	dac_ready = true;
+	sys_busy(2);
 }
 
 void audio_process(void)

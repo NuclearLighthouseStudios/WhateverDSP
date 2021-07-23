@@ -251,6 +251,8 @@ void OTG_FS_IRQHandler(void)
 			ep_int_flags >>= 1;
 		}
 	}
+
+	sys_busy(1);
 }
 
 

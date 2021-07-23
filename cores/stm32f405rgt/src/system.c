@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdbool.h>
 
 #include "stm32f4xx.h"
 
@@ -7,7 +8,8 @@
 
 #include "system.h"
 
-volatile unsigned long int __attribute__((section(".ccmram"))) sys_ticks = 0;
+volatile unsigned long int __CCMRAM sys_ticks = 0;
+static volatile int __CCMRAM busy = 0;
 
 void SysTick_Handler(void)
 {
@@ -111,8 +113,19 @@ char *sys_get_serial(void)
 	return serial;
 }
 
+void sys_busy(int busyness)
+{
+	busy += busyness;
+}
+
 void sys_idle(void)
 {
+	if (busy > 0)
+	{
+		busy--;
+		return;
+	}
+
 #ifdef DEBUG
 	uint32_t sleep_start;
 	static uint32_t sleep_end = 0;
