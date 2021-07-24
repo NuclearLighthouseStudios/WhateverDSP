@@ -290,6 +290,7 @@ void usb_phy_transmit(usb_in_endpoint *ep)
 			pkg_count += 1;
 	}
 
+	USB_OTG_FS_INEP(ep->epnum)->DIEPTSIZ = 0;
 	MODIFY_REG(USB_OTG_FS_INEP(ep->epnum)->DIEPTSIZ, USB_OTG_DIEPTSIZ_PKTCNT_Msk, pkg_count << USB_OTG_DIEPTSIZ_PKTCNT_Pos);
 	MODIFY_REG(USB_OTG_FS_INEP(ep->epnum)->DIEPTSIZ, USB_OTG_DIEPTSIZ_XFRSIZ_Msk, size << USB_OTG_DIEPTSIZ_XFRSIZ_Pos);
 
@@ -319,6 +320,8 @@ void usb_phy_receive(usb_out_endpoint *ep)
 
 	size = pkg_count * ep->max_packet_size;
 
+	USB_OTG_FS_OUTEP(ep->epnum)->DOEPTSIZ = 0U;
+	MODIFY_REG(USB_OTG_FS_OUTEP(ep->epnum)->DOEPTSIZ, USB_OTG_DOEPTSIZ_STUPCNT_Msk, 3 << USB_OTG_DOEPTSIZ_STUPCNT_Pos);
 	MODIFY_REG(USB_OTG_FS_OUTEP(ep->epnum)->DOEPTSIZ, USB_OTG_DOEPTSIZ_PKTCNT_Msk, pkg_count << USB_OTG_DOEPTSIZ_PKTCNT_Pos);
 	MODIFY_REG(USB_OTG_FS_OUTEP(ep->epnum)->DOEPTSIZ, USB_OTG_DOEPTSIZ_XFRSIZ_Msk, size << USB_OTG_DOEPTSIZ_XFRSIZ_Pos);
 
