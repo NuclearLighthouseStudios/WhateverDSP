@@ -307,7 +307,25 @@ void usb_phy_transmit(usb_in_endpoint *ep)
 	SET_BIT(USB_OTG_FS_INEP(ep->epnum)->DIEPCTL, USB_OTG_DIEPCTL_EPENA | USB_OTG_DIEPCTL_CNAK);
 
 	if (size > 0)
-		SET_BIT(USB_OTG_FS_DEVICE->DIEPEMPMSK, 0b1 << ep->epnum);
+	{
+		size_t empty = USB_OTG_FS_INEP(ep->epnum)->DTXFSTS * 4;
+
+		if (empty <= 0)
+		{
+			SET_BIT(USB_OTG_FS_DEVICE->DIEPEMPMSK, 0b1 << ep->epnum);
+			return;
+		}
+
+		size_t count = (USB_OTG_FS_INEP(ep->epnum)->DIEPTSIZ & USB_OTG_DIEPTSIZ_XFRSIZ_Msk) >> USB_OTG_DIEPTSIZ_XFRSIZ_Pos;
+
+		if (count > empty) count = empty;
+
+		fifo_write(ep->tx_buffer + ep->tx_count, count, ep->fifo_num);
+		ep->tx_count += count;
+
+		if (ep->tx_count < ep->tx_size)
+			SET_BIT(USB_OTG_FS_DEVICE->DIEPEMPMSK, 0b1 << ep->epnum);
+	}
 }
 
 void usb_phy_receive(usb_out_endpoint *ep)
