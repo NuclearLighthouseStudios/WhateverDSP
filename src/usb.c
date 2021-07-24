@@ -165,8 +165,6 @@ void usb_reset_sync(void)
 
 	if (in_eps[0].start_callback)
 		in_eps[0].start_callback(&(in_eps[0]));
-
-	usb_phy_flush_fifos();
 }
 
 void usb_configure(void)

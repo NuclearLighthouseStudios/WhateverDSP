@@ -439,10 +439,7 @@ void usb_phy_reset(void)
 	USB_OTG_FS->GRXFSIZ = USB_PHY_RX_FIFO_SIZE;
 	fifo_alloc_pos = USB_PHY_RX_FIFO_SIZE;
 	fifo_alloc_num = 0;
-}
 
-void usb_phy_flush_fifos(void)
-{
 	// Flush transmit fifos
 	SET_BIT(USB_OTG_FS->GRSTCTL, 0x10 << USB_OTG_GRSTCTL_TXFNUM_Pos);
 	SET_BIT(USB_OTG_FS->GRSTCTL, USB_OTG_GRSTCTL_TXFFLSH);

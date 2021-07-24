@@ -7,9 +7,7 @@ typedef void (*usb_phy_sof_callback)(uint16_t frame_num);
 
 extern void usb_phy_init(usb_in_endpoint in_eps[], usb_out_endpoint out_eps[]);
 extern void usb_phy_start(void);
-
 extern void usb_phy_reset(void);
-extern void usb_phy_flush_fifos(void);
 
 extern void usb_phy_set_address(int address);
 
