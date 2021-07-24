@@ -1,6 +1,9 @@
 #ifndef __MIDI_USB_H
 #define __MIDI_USB_H
 
+#include <stdint.h>
+#include "cmsis_compiler.h"
+
 typedef enum
 {
 	USB_MIDI_JACK_EMBEDDED = 0x01,
@@ -20,7 +23,7 @@ typedef struct __PACKED
 } usb_midi_header_descriptor;
 
 #define USB_MIDI_HEADER_DESCRIPTOR_INIT()\
-{\
+(usb_midi_header_descriptor){\
 	.bLength = 9,\
 	.bDescriptorType = 0x24,\
 	.bDescriptorSubtype = 0x01,\
@@ -43,7 +46,7 @@ typedef struct __PACKED
 } usb_midi_in_jack_descriptor;
 
 #define USB_MIDI_IN_JACK_DESCRIPTOR_INIT(jack_type, jack_id)\
-{\
+(usb_midi_in_jack_descriptor){\
 	.bLength = 6,\
 	.bDescriptorType = 0x24,\
 	.bDescriptorSubtype = 0x02,\
@@ -70,7 +73,7 @@ typedef struct __PACKED
 } usb_midi_out_jack_descriptor;
 
 #define USB_MIDI_OUT_JACK_DESCRIPTOR_INIT(jack_type, jack_id, source_id)\
-{\
+(usb_midi_out_jack_descriptor){\
 	.bLength = 9,\
 	.bDescriptorType = 0x24,\
 	.bDescriptorSubtype = 0x03,\
@@ -95,7 +98,7 @@ typedef struct __PACKED
 } usb_midi_endpoint_descriptor;
 
 #define USB_MIDI_ENDPOINT_DESCRIPTOR_INIT(jack_id)\
-{\
+(usb_midi_endpoint_descriptor){\
 	.bLength = 5,\
 	.bDescriptorType = 0x25,\
 	.bDescriptorSubtype = 0x01,\

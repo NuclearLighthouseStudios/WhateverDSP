@@ -18,7 +18,7 @@ typedef struct __PACKED
 } usb_uac_header_descriptor;
 
 #define USB_UAC_HEADER_INIT()\
-{\
+(usb_uac_header_descriptor){\
 	.bLength = 8,\
 	.bDescriptorType = 0x24,\
 	.bDescriptorSubtype = 0x01,\

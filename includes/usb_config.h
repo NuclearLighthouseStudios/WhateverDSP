@@ -39,7 +39,7 @@ typedef struct __PACKED
 } usb_device_descriptor;
 
 #define USB_DEVICE_DESCRIPTOR_INIT(vid, pid, device_ver) \
-{\
+(usb_device_descriptor){\
 	.bLength = 18,\
 	.bDescriptorType = 0x01,\
 	.bcdUSB = 0x0110,\
@@ -75,7 +75,7 @@ typedef struct __PACKED
 } usb_configuration_descriptor;
 
 #define USB_CONFIGURATION_DESCRIPTOR_INIT()\
-{\
+(usb_configuration_descriptor){\
 	.bLength = 9,\
 	.bDescriptorType = 0x02,\
 \
@@ -106,7 +106,7 @@ typedef struct __PACKED
 } usb_interface_descriptor;
 
 #define USB_INTERFACE_DESCRIPTOR_INIT(num_endpoints, class, sub_class, protocol)\
-{\
+(usb_interface_descriptor){\
 	.bLength = 9,\
 	.bDescriptorType = 0x04,\
 \
@@ -143,7 +143,7 @@ typedef struct __PACKED
 } usb_endpoint_descriptor;
 
 #define USB_ENDPOINT_DESCRIPTOR_INIT_BULK(endpoint_address, max_packet_size)\
-{\
+(usb_endpoint_descriptor){\
 	.bLength = 7,\
 	.bDescriptorType = 0x05,\
 \
