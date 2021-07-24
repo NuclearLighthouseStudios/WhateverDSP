@@ -193,7 +193,7 @@ void usb_process(void)
 				usb_phy_out_ep_init(&(out_eps[i]));
 		}
 
-		for (int i = 0; i < USB_PHY_NUM_EPS; i++)
+		for (int i = 1; i < USB_PHY_NUM_EPS; i++)
 		{
 			if ((out_eps[i].active) && (out_eps[i].start_callback))
 				out_eps[i].start_callback(&(out_eps[i]));
