@@ -25,6 +25,11 @@
 static usb_in_endpoint __CCMRAM *usb_in_eps;
 static usb_out_endpoint __CCMRAM *usb_out_eps;
 
+#define MAX_SOF_CALLBACKS 4
+static int __CCMRAM num_sof_callbacks = 0;
+static usb_phy_sof_callback __CCMRAM sof_callbacks[MAX_SOF_CALLBACKS];
+
+static uint16_t __CCMRAM frame_num = 0;
 
 static int __CCMRAM fifo_alloc_pos;
 static int __CCMRAM fifo_alloc_num;
@@ -98,6 +103,16 @@ void OTG_FS_IRQHandler(void)
 	{
 		SET_BIT(USB_OTG_FS->GINTSTS, USB_OTG_GINTSTS_USBRST);
 		usb_reset();
+	}
+
+	if (READ_BIT(USB_OTG_FS->GINTSTS, USB_OTG_GINTSTS_SOF))
+	{
+		SET_BIT(USB_OTG_FS->GINTSTS, USB_OTG_GINTSTS_SOF);
+
+		frame_num = ((USB_OTG_FS_DEVICE->DSTS & USB_OTG_DSTS_FNSOF_Msk) >> USB_OTG_DSTS_FNSOF_Pos);
+
+		for (int i = 0; i < num_sof_callbacks; i++)
+			sof_callbacks[i](frame_num);
 	}
 
 	if (READ_BIT(USB_OTG_FS->GINTSTS, USB_OTG_GINTSTS_RXFLVL))
@@ -210,7 +225,7 @@ void OTG_FS_IRQHandler(void)
 				if ((READ_BIT(ints, USB_OTG_DIEPINT_TXFE)) && (READ_BIT(USB_OTG_FS_DEVICE->DIEPEMPMSK, 0b1 << epnum)))
 				{
 					size_t empty = USB_OTG_FS_INEP(epnum)->DTXFSTS * 4;
-					size_t count = (USB_OTG_FS_INEP(ep->epnum)->DIEPTSIZ & USB_OTG_DIEPTSIZ_XFRSIZ_Msk) >> USB_OTG_DIEPTSIZ_XFRSIZ_Pos;
+					size_t count = (USB_OTG_FS_INEP(epnum)->DIEPTSIZ & USB_OTG_DIEPTSIZ_XFRSIZ_Msk) >> USB_OTG_DIEPTSIZ_XFRSIZ_Pos;
 
 					if (count > empty) count = empty;
 
@@ -383,6 +398,16 @@ void usb_phy_out_ep_init(usb_out_endpoint *ep)
 }
 
 
+void usb_phy_add_sof_callback(usb_phy_sof_callback callback)
+{
+	if (num_sof_callbacks < MAX_SOF_CALLBACKS)
+	{
+		sof_callbacks[num_sof_callbacks] = callback;
+		num_sof_callbacks++;
+	}
+}
+
+
 void usb_phy_set_address(int address)
 {
 	MODIFY_REG(USB_OTG_FS_DEVICE->DCFG, USB_OTG_DCFG_DAD_Msk, (address & 0x7f) << USB_OTG_DCFG_DAD_Pos);
@@ -485,8 +510,10 @@ void usb_phy_start(void)
 	USB_OTG_FS->GINTSTS = 0xFFFFFFFFU;
 
 	// Enable the interrupts we want
-	USB_OTG_FS->GINTMSK = USB_OTG_GINTMSK_USBRST | USB_OTG_GINTMSK_RXFLVLM |
-		USB_OTG_GINTMSK_IEPINT | USB_OTG_GINTMSK_OEPINT;
+	USB_OTG_FS->GINTMSK =
+		USB_OTG_GINTMSK_USBRST | USB_OTG_GINTMSK_RXFLVLM |
+		USB_OTG_GINTMSK_IEPINT | USB_OTG_GINTMSK_OEPINT |
+		USB_OTG_GINTMSK_SOFM;
 
 	// Get transfer complete interrupts from IN endpoints
 	USB_OTG_FS_DEVICE->DIEPMSK = USB_OTG_DIEPMSK_XFRCM;
