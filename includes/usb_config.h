@@ -5,10 +5,6 @@
 
 #include "cmsis_compiler.h"
 
-#define USB_CONFIG_MAX_CONF_DESCS 64
-#define USB_CONFIG_MAX_CONF_DESC_SIZE 1024
-#define USB_CONFIG_MAX_STRING_DESCS 64
-
 typedef struct __PACKED
 {
 	uint8_t bLength;

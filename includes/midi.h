@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define MIDI_MAX_INTERFACES 8
+#define MIDI_MAX_INTERFACES 4
 
 typedef struct
 {
