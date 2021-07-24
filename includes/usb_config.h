@@ -121,6 +121,22 @@ typedef struct __PACKED
 	.iInterface = 0,\
 }
 
+#define USB_INTERFACE_DESCRIPTOR_INIT_ALT(alternate_setting, num_endpoints, class, sub_class, protocol)\
+(usb_interface_descriptor){\
+	.bLength = 9,\
+	.bDescriptorType = 0x04,\
+\
+	.bInterfaceNumber = 0,\
+	.bAlternateSetting = alternate_setting,\
+	.bNumEndpoints = num_endpoints,\
+\
+	.bInterfaceClass = class,\
+	.bInterfaceSubClass = sub_class,\
+	.bInterfaceProtocol = protocol,\
+\
+	.iInterface = 0,\
+}
+
 
 typedef struct __PACKED
 {

@@ -206,7 +206,11 @@ void usb_config_add_descriptor(usb_descriptor *desc)
 
 		if (desc->bDescriptorType == 0x04)
 		{
+			if (((usb_interface_descriptor *)desc)->bAlternateSetting != 0)
+				num_interfaces--;
+
 			((usb_interface_descriptor *)desc)->bInterfaceNumber = num_interfaces;
+
 			num_interfaces++;
 		}
 	}
