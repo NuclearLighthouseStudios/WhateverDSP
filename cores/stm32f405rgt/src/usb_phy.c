@@ -336,10 +336,6 @@ void usb_phy_in_ep_init(usb_in_endpoint *ep)
 	ep->fifo_num = fifo_num;
 	MODIFY_REG(USB_OTG_FS_INEP(epnum)->DIEPCTL, USB_OTG_DIEPCTL_TXFNUM_Msk, fifo_num << USB_OTG_DIEPCTL_TXFNUM_Pos);
 
-	// Flush transmit fifo
-	SET_BIT(USB_OTG_FS->GRSTCTL, epnum << USB_OTG_GRSTCTL_TXFNUM_Pos);
-	SET_BIT(USB_OTG_FS->GRSTCTL, USB_OTG_GRSTCTL_TXFFLSH);
-
 	while (READ_BIT(USB_OTG_FS->GRSTCTL, USB_OTG_GRSTCTL_TXFFLSH))
 		__NOP();
 
