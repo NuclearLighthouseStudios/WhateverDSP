@@ -152,6 +152,19 @@ typedef struct __PACKED
 	.wMaxPacketSize = max_packet_size,\
 }
 
+#define USB_ENDPOINT_DESCRIPTOR_INIT_ISO(endpoint_address, sync_type, usage_type, max_packet_size)\
+(usb_endpoint_descriptor){\
+	.bLength = 7,\
+	.bDescriptorType = 0x05,\
+\
+	.bEndpointAddress = endpoint_address,\
+	.bmAttributes.type = EP_TYPE_ISOCHRONOUS,\
+	.bmAttributes.sync = sync_type,\
+	.bmAttributes.usage = usage_type,\
+	.bInterval = 4,\
+	.wMaxPacketSize = max_packet_size,\
+}
+
 
 #define USB_CONFIG_MAX_STR_DESC_LENGTH 64
 
