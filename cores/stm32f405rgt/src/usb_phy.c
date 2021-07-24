@@ -296,6 +296,14 @@ void usb_phy_transmit(usb_in_endpoint *ep)
 
 	CLEAR_BIT(USB_OTG_FS_INEP(ep->epnum)->DIEPCTL, USB_OTG_DIEPCTL_STALL);
 
+	if (ep->type == EP_TYPE_ISOCHRONOUS)
+	{
+		if (frame_num & 0b1)
+			SET_BIT(USB_OTG_FS_INEP(ep->epnum)->DIEPCTL, USB_OTG_DIEPCTL_SODDFRM);
+		else
+			SET_BIT(USB_OTG_FS_INEP(ep->epnum)->DIEPCTL, USB_OTG_DIEPCTL_SD0PID_SEVNFRM);
+	}
+
 	SET_BIT(USB_OTG_FS_INEP(ep->epnum)->DIEPCTL, USB_OTG_DIEPCTL_EPENA | USB_OTG_DIEPCTL_CNAK);
 
 	if (size > 0)
