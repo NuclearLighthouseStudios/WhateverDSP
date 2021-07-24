@@ -29,10 +29,10 @@ static usb_midi_in_jack_descriptor __CCMRAM ext_in_jack_desc = USB_MIDI_IN_JACK_
 static usb_midi_out_jack_descriptor __CCMRAM emb_out_jack_desc = USB_MIDI_OUT_JACK_DESCRIPTOR_INIT(USB_MIDI_JACK_EMBEDDED, 0x03, 0x02);
 static usb_midi_out_jack_descriptor __CCMRAM ext_out_jack_desc = USB_MIDI_OUT_JACK_DESCRIPTOR_INIT(USB_MIDI_JACK_EXTERNAL, 0x04, 0x01);
 
-static usb_endpoint_descriptor __CCMRAM in_ep_desc = USB_ENDPOINT_DESCRIPTOR_INIT_BULK(0x81, 8);
+static usb_endpoint_descriptor __CCMRAM in_ep_desc;
 static usb_midi_endpoint_descriptor __CCMRAM midi_in_desc = USB_MIDI_ENDPOINT_DESCRIPTOR_INIT(0x03);
 
-static usb_endpoint_descriptor __CCMRAM out_ep_desc = USB_ENDPOINT_DESCRIPTOR_INIT_BULK(0x01, 8);
+static usb_endpoint_descriptor __CCMRAM out_ep_desc;
 static usb_midi_endpoint_descriptor __CCMRAM midi_out_desc = USB_MIDI_ENDPOINT_DESCRIPTOR_INIT(0x01);
 
 static bool tx_ready __CCMRAM = false;
@@ -279,8 +279,11 @@ void midi_usb_init(void)
 	usb_config_add_descriptor((usb_descriptor *)&emb_out_jack_desc);
 	usb_config_add_descriptor((usb_descriptor *)&ext_out_jack_desc);
 
+	in_ep_desc = USB_ENDPOINT_DESCRIPTOR_INIT_BULK(midi_in_ep->epnum | 0x80, 8);
 	usb_config_add_descriptor((usb_descriptor *)&in_ep_desc);
 	usb_config_add_descriptor((usb_descriptor *)&midi_in_desc);
+
+	out_ep_desc = USB_ENDPOINT_DESCRIPTOR_INIT_BULK(midi_out_ep->epnum, 8);
 	usb_config_add_descriptor((usb_descriptor *)&out_ep_desc);
 	usb_config_add_descriptor((usb_descriptor *)&midi_out_desc);
 
