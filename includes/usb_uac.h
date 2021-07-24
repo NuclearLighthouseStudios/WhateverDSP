@@ -40,5 +40,6 @@ static inline usb_uac_header_descriptor usb_uac_header_init(void)
 extern void usb_uac_init(void);
 
 extern void usb_uac_add_interface(usb_interface_descriptor *interface);
+extern void usb_uac_add_terminal(usb_descriptor *terminal);
 
 #endif

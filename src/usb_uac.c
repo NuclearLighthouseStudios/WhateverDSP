@@ -23,6 +23,11 @@ void usb_uac_add_interface(usb_interface_descriptor *interface)
 	}
 }
 
+void usb_uac_add_terminal(usb_descriptor *terminal)
+{
+	uac_header.wTotalLength += terminal->bLength;
+}
+
 void usb_uac_init(void)
 {
 	usb_config_add_descriptor((usb_descriptor *)&uac_interface);
