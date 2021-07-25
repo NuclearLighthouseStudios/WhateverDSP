@@ -267,7 +267,6 @@ void OTG_FS_IRQHandler(void)
 		}
 	}
 
-	sys_busy(1);
 }
 
 

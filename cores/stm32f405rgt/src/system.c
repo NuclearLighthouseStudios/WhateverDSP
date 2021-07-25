@@ -9,7 +9,9 @@
 #include "system.h"
 
 volatile unsigned long int __CCMRAM sys_ticks = 0;
-static volatile int __CCMRAM busy = 0;
+
+#define MAX_BUSY_FLAGS 16
+static volatile bool __CCMRAM *busy_flags[MAX_BUSY_FLAGS];
 
 void SysTick_Handler(void)
 {
@@ -113,17 +115,29 @@ char *sys_get_serial(void)
 	return serial;
 }
 
-void sys_busy(int busyness)
+void sys_busy(volatile bool *flag)
 {
-	busy += busyness;
+	for (int i = 0; i < MAX_BUSY_FLAGS; i++)
+	{
+		if (!busy_flags[i])
+		{
+			busy_flags[i] = flag;
+			return;
+		}
+	}
 }
 
 void sys_idle(void)
 {
-	if (busy > 0)
+	for (int i = 0; i < MAX_BUSY_FLAGS; i++)
 	{
-		busy--;
-		return;
+		if (busy_flags[i])
+		{
+			if (*busy_flags[i])
+				return;
+			else
+				busy_flags[i] = NULL;
+		}
 	}
 
 #ifdef DEBUG
@@ -175,6 +189,9 @@ void sys_init(void)
 	// Enable DMA1 and 2 periphery
 	SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_DMA1EN);
 	SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_DMA2EN);
+
+	for (int i = 0; i < MAX_BUSY_FLAGS; i++)
+		busy_flags[i] = NULL;
 
 #ifdef DEBUG
 	// Enable trace and cycle counter for performance monitoring

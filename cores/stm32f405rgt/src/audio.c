@@ -53,7 +53,7 @@ void DMA1_Stream0_IRQHandler(void)
 	in_buffer = !in_buffer;
 
 	adc_ready = true;
-	sys_busy(2);
+	sys_busy(&adc_ready);
 }
 
 void DMA1_Stream4_IRQHandler(void)
@@ -64,7 +64,7 @@ void DMA1_Stream4_IRQHandler(void)
 	out_buffer = !out_buffer;
 
 	dac_ready = true;
-	sys_busy(2);
+	sys_busy(&dac_ready);
 }
 
 void audio_process(void)
