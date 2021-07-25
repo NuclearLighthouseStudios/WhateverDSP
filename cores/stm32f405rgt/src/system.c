@@ -163,9 +163,6 @@ void sys_idle(void)
 
 		float load = ((float)time_active / (float)(time_idle + time_active) * 100.0f);
 		sys_itm_send_float(load, 1);
-	#ifdef PRINT_LOAD
-		printf("Load: %5.2f%%\n", load);
-	#endif
 
 		time_idle = 0;
 		time_active = 0;
