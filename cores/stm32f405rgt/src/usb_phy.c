@@ -178,8 +178,8 @@ void OTG_FS_IRQHandler(void)
 						size_t left = (USB_OTG_FS_OUTEP(epnum)->DOEPTSIZ & USB_OTG_DOEPTSIZ_XFRSIZ_Msk) >> USB_OTG_DOEPTSIZ_XFRSIZ_Pos;
 
 						// If the current transfer went through completely start another one.
-						// Transfers should always end with a short or zero length packet.
-						if (left == 0)
+						// Non isochronous transfers should always end with a short or zero length packet.
+						if ((left == 0) && (ep->type != EP_TYPE_ISOCHRONOUS))
 							usb_phy_receive(ep);
 						else
 							ep->rx_ready = true;
@@ -234,8 +234,8 @@ void OTG_FS_IRQHandler(void)
 					if (ep->tx_count >= ep->tx_size)
 					{
 						// In case our amount of data to send doesn't result in a "short packet" at the end
-						// we need to send one more zero size packet to signal the end of transmission
-						if ((ep->tx_size != 0) && (ep->tx_size % ep->max_packet_size == 0))
+						// we need to send one more zero size packet to signal the end of transmission for non iso transaction
+						if ((ep->tx_size != 0) && (ep->tx_size % ep->max_packet_size == 0) && (ep->type != EP_TYPE_ISOCHRONOUS))
 						{
 							ep->tx_size = 0;
 							usb_phy_transmit(ep);

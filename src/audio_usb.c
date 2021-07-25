@@ -26,7 +26,8 @@ static usb_audio_format_i_descriptor __CCMRAM audio_format_desc = USB_AUDIO_FORM
 static usb_endpoint_descriptor __CCMRAM endpoint_desc;
 static usb_audio_endpoint_descriptor __CCMRAM audio_endpoint_desc = USB_AUDIO_ENDPOINT_DESCRIPTOR_INIT();
 
-static float tx_buf[2][128];
+#define MAX_BUFFER_SIZE 128
+static float tx_buf[2][MAX_BUFFER_SIZE];
 static int active_buf = 0;
 static int buff_length = 0;
 static int tx_length = 0;
@@ -71,7 +72,7 @@ void audio_usb_send(float in_buffer[][2], int len)
 
 	for (int i = 0; i < len; i++)
 	{
-		if (buff_length >= 126)
+		if (buff_length >= MAX_BUFFER_SIZE)
 			return;
 
 		tx_buf[active_buf][buff_length++] = in_buffer[i][0];
