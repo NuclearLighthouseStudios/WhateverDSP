@@ -6,6 +6,7 @@
 #include "system.h"
 #include "io.h"
 #include "audio.h"
+#include "audio_usb.h"
 #include "usb.h"
 #include "usb_config.h"
 #include "usb_uac.h"
@@ -26,6 +27,7 @@ int main(void)
 	usb_uac_init();
 
 	audio_init();
+	audio_usb_init();
 
 	midi_init();
 	midi_uart_init();

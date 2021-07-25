@@ -9,6 +9,7 @@
 #include "wdsp.h"
 
 #include "system.h"
+#include "audio_usb.h"
 #include "audio.h"
 
 #include "conf/audio.h"
@@ -74,6 +75,7 @@ void audio_process(void)
 		adc_ready = false;
 		dac_ready = false;
 		wdsp_process(in_buffers[in_buffer], out_buffers[out_buffer], BLOCK_SIZE);
+		audio_usb_send(out_buffers[out_buffer], BLOCK_SIZE);
 	}
 }
 

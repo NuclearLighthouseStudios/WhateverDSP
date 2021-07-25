@@ -158,7 +158,7 @@ static void handle_setup(usb_out_endpoint *ep, usb_setup_packet *packet)
 		// SET_INTERFACE
 		case 11:
 		{
-			printf("SET_INTERFACE [%d] %d\n", packet->wIndex, packet->wValue);
+			// printf("SET_INTERFACE [%d] %d\n", packet->wIndex, packet->wValue);
 		}
 		break;
 
