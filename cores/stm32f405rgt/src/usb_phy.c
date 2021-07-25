@@ -79,21 +79,13 @@ static void fifo_read(uint8_t *buf, size_t size)
 
 static void fifo_write(uint8_t *buf, size_t size, int fifo_num)
 {
-	while (size > 0)
+	uint32_t *wbuf = (uint32_t *)buf;
+	int32_t count = (size + 3) / 4;
+
+	while (count > 0)
 	{
-		uint32_t data = 0x00;
-
-		for (int i = 0; i < 4; i++)
-		{
-			data >>= 8;
-			if (size > 0)
-			{
-				data |= *(buf++) << 24;
-				size--;
-			}
-		}
-
-		USB_OTG_FS_DFIFO(fifo_num) = data;
+		USB_OTG_FS_DFIFO(fifo_num) = *wbuf++;
+		count--;
 	}
 }
 
