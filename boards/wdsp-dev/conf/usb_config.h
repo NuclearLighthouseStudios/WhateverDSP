@@ -1,13 +1,13 @@
 #ifndef __CONF_USB_CONFIG_H
 #define __CONF_USB_CONFIG_H
 
-#include "usb_config.h"
+#include "config.h"
 
-#define USB_VID 0xb00f
-#define USB_PID 0xb00f
-#define USB_DEVICE_VER 0x0100
+#define USB_VID CONFIG_USB_VID
+#define USB_PID CONFIG_USB_PID
+#define USB_DEVICE_VER CONFIG_USB_DEVICE_VERSION
 
-#define USB_MANUFACTURER_STR "NLS"
-#define USB_PRODUCT_STR "WhateverDSP Dev Board"
+#define USB_MANUFACTURER_STR CONFIG_USB_VENDOR_NAME
+#define USB_PRODUCT_STR CONFIG_USB_PRODUCT_NAME
 
 #endif
