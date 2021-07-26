@@ -27,7 +27,7 @@ int main(void)
 #if CONFIG_MODULES_USB == true
 	usb_init();
 	usb_config_init();
-#if CONFIG_MIDI_USB == true
+#if (CONFIG_MIDI_USB == true) || (CONFIG_AUDIO_USB == true)
 	usb_uac_init();
 #endif
 #endif
