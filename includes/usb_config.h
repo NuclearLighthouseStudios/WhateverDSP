@@ -173,7 +173,7 @@ typedef struct __PACKED
 	.bmAttributes.type = EP_TYPE_ISOCHRONOUS,\
 	.bmAttributes.sync = sync_type,\
 	.bmAttributes.usage = usage_type,\
-	.bInterval = 4,\
+	.bInterval = 1,\
 	.wMaxPacketSize = max_packet_size,\
 }
 

@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "config.h"
+
 #include "board.h"
 #include "core.h"
 
@@ -15,13 +17,14 @@
 
 static usb_in_endpoint __CCMRAM *audio_in_ep;
 
-static usb_audio_input_terminal_descriptor __CCMRAM audio_input_terminal = USB_AUDIO_INPUT_TERMINAL_DESCRIPTOR_INIT(1, 0x0201, 1, 0x0000);
+static usb_audio_input_terminal_descriptor __CCMRAM audio_input_terminal = USB_AUDIO_INPUT_TERMINAL_DESCRIPTOR_INIT(1, 0x0201, 2, 0x0003);
 static usb_audio_output_terminal_descriptor __CCMRAM audio_output_terminal = USB_AUDIO_OUTPUT_TERMINAL_DESCRIPTOR_INIT(2, 0x0101, 1);
 
-static usb_interface_descriptor __CCMRAM interface_desc = USB_INTERFACE_DESCRIPTOR_INIT(1, 0x01, 0x02, 0x00);
+static usb_interface_descriptor __CCMRAM interface_desc_zb = USB_INTERFACE_DESCRIPTOR_INIT(0, 0x01, 0x02, 0x00);
+static usb_interface_descriptor __CCMRAM interface_desc = USB_INTERFACE_DESCRIPTOR_INIT_ALT(1, 1, 0x01, 0x02, 0x00);
 
 static usb_audio_interface_descriptor __CCMRAM audio_interface_desc = USB_AUDIO_INTERFACE_DESCRIPTOR_INIT(2, 0, 0x0003);
-static usb_audio_format_i_descriptor __CCMRAM audio_format_desc = USB_AUDIO_FORMAT_I_DESCRIPTOR_INIT(2, 4, 32, SAMPLE_RATE);
+static usb_audio_format_i_descriptor __CCMRAM audio_format_desc = USB_AUDIO_FORMAT_I_DESCRIPTOR_INIT(2, 4, 32, CONFIG_AUDIO_SAMPLE_RATE);
 
 static usb_endpoint_descriptor __CCMRAM endpoint_desc;
 static usb_audio_endpoint_descriptor __CCMRAM audio_endpoint_desc = USB_AUDIO_ENDPOINT_DESCRIPTOR_INIT();
@@ -91,7 +94,10 @@ void audio_usb_init(void)
 	usb_config_add_descriptor((usb_descriptor *)&audio_output_terminal);
 	usb_uac_add_terminal((usb_descriptor *)&audio_output_terminal);
 
-	interface_desc.iInterface = usb_config_add_string("USB Audio Interface");
+	interface_desc_zb.iInterface = usb_config_add_string("USB Audio Interface");
+	usb_config_add_descriptor((usb_descriptor *)&interface_desc_zb);
+
+	interface_desc.iInterface = interface_desc_zb.iInterface;
 	usb_config_add_descriptor((usb_descriptor *)&interface_desc);
 	usb_uac_add_interface(&interface_desc);
 
