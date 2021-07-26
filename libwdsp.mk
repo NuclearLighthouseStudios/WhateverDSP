@@ -41,7 +41,7 @@ $(TARGET).hex: $(TARGET)
 $(TARGET).bin: $(TARGET)
 	$(BIN) $< $@
 
-$(TARGET): $(WDSP_PATH)/libwdsp.a
+$(TARGET): $(WDSP_PATH)/$(LIB_NAME).a
 
 .PHONY: libclean
 libclean:

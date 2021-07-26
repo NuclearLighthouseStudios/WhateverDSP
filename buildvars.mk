@@ -5,6 +5,11 @@ export OPT ?= -O3
 export DEBUG ?= false
 export BOARD ?= wdsp-dev
 
+ifeq ($(DEBUG), true)
+export LIB_NAME ?= libwdsp-debug
+else
+export LIB_NAME ?= libwdsp
+endif
 
 #######################################
 # binaries
