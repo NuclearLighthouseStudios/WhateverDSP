@@ -1,5 +1,7 @@
 #include <stdio.h>
 
+#include "config.h"
+
 #include "core.h"
 #include "board.h"
 
@@ -22,18 +24,32 @@ int main(void)
 	sys_init();
 	io_init();
 
+#if CONFIG_MODULES_USB == true
 	usb_init();
 	usb_config_init();
+#if CONFIG_MIDI_USB == true
 	usb_uac_init();
+#endif
+#endif
 
 	audio_init();
 	audio_usb_init();
 
+#if CONFIG_MODULES_MIDI == true
 	midi_init();
-	midi_uart_init();
-	midi_usb_init();
 
+#if CONFIG_MIDI_UART == true
+	midi_uart_init();
+#endif
+#if (CONFIG_MODULES_USB == true) && (CONFIG_MIDI_USB == true)
+	midi_usb_init();
+#endif
+
+#endif
+
+#if CONFIG_MODULES_USB == true
 	usb_start();
+#endif
 
 	puts("Hey there! {^-^}~");
 	printf("libWDSP running at %dhz with block size %d\n", SAMPLE_RATE, BLOCK_SIZE);
@@ -43,7 +59,10 @@ int main(void)
 	while (1)
 	{
 		audio_process();
+
+	#if CONFIG_MODULES_USB == true
 		usb_process();
+	#endif
 
 		if (sys_ticks != last_idle)
 		{

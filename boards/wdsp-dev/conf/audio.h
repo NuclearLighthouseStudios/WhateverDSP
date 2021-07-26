@@ -1,7 +1,10 @@
 #ifndef __CONF_AUDIO_H
 #define __CONF_AUDIO_H
 
-#include "board.h"
+#include "config.h"
+
+#define BLOCK_SIZE CONFIG_AUDIO_BLOCK_SIZE
+#define SAMPLE_RATE CONFIG_AUDIO_SAMPLE_RATE
 
 #if SAMPLE_RATE == 44100
 #define PLLN 79

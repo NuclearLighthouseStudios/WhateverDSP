@@ -9,6 +9,9 @@ $(error Please set the board type)
 endif
 
 WDSP_PATH := $(dir $(lastword $(MAKEFILE_LIST)))
+CONFIG_FILE ?= $(wildcard ./config.ini)
+
+export USER_CONFIG ?= $(realpath $(CONFIG_FILE))
 
 include $(WDSP_PATH)/buildvars.mk
 
@@ -41,7 +44,7 @@ $(TARGET).hex: $(TARGET)
 $(TARGET).bin: $(TARGET)
 	$(BIN) $< $@
 
-$(TARGET): $(WDSP_PATH)/libwdsp.a
+$(TARGET): $(WDSP_PATH)/$(LIB_NAME).a
 
 .PHONY: libclean
 libclean:
