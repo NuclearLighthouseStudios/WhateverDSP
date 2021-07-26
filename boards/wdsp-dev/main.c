@@ -33,7 +33,10 @@ int main(void)
 #endif
 
 	audio_init();
+
+#if (CONFIG_MODULES_USB == true) && (CONFIG_AUDIO_USB == true)
 	audio_usb_init();
+#endif
 
 #if CONFIG_MODULES_MIDI == true
 	midi_init();
