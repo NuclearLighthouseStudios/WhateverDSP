@@ -1,0 +1,11 @@
+#ifndef __CONF_AUDIO_USB_H
+#define __CONF_AUDIO_USB_H
+
+#include "config.h"
+
+#define SAMPLE_RATE CONFIG_AUDIO_SAMPLE_RATE
+#define MAX_BUFFER_SIZE 128
+
+#define INTERFACE_NAME CONFIG_AUDIO_USB_INTERFACE_NAME
+
+#endif
