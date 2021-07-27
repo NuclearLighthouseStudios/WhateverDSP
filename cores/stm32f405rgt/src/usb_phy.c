@@ -97,11 +97,11 @@ void OTG_FS_IRQHandler(void)
 		usb_reset();
 	}
 
-	if (READ_BIT(USB_OTG_FS->GINTSTS, USB_OTG_GINTSTS_SOF))
+	if (READ_BIT(USB_OTG_FS->GINTSTS, USB_OTG_GINTSTS_EOPF))
 	{
-		SET_BIT(USB_OTG_FS->GINTSTS, USB_OTG_GINTSTS_SOF);
+		SET_BIT(USB_OTG_FS->GINTSTS, USB_OTG_GINTSTS_EOPF);
 
-		frame_num = ((USB_OTG_FS_DEVICE->DSTS & USB_OTG_DSTS_FNSOF_Msk) >> USB_OTG_DSTS_FNSOF_Pos);
+		frame_num = ((USB_OTG_FS_DEVICE->DSTS & USB_OTG_DSTS_FNSOF_Msk) >> USB_OTG_DSTS_FNSOF_Pos)+1;
 
 		for (int i = 0; i < num_sof_callbacks; i++)
 			sof_callbacks[i](frame_num);
@@ -530,7 +530,7 @@ void usb_phy_start(void)
 	USB_OTG_FS->GINTMSK =
 		USB_OTG_GINTMSK_USBRST | USB_OTG_GINTMSK_RXFLVLM |
 		USB_OTG_GINTMSK_IEPINT | USB_OTG_GINTMSK_OEPINT |
-		USB_OTG_GINTMSK_SOFM;
+		USB_OTG_GINTSTS_EOPF;
 
 	// Get transfer complete interrupts from IN endpoints
 	USB_OTG_FS_DEVICE->DIEPMSK = USB_OTG_DIEPMSK_XFRCM;
