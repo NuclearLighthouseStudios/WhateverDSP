@@ -12,6 +12,8 @@
 
 #include "midi_usb.h"
 
+#include "conf/midi_usb.h"
+
 static usb_in_endpoint __CCMRAM *midi_in_ep;
 static usb_out_endpoint __CCMRAM *midi_out_ep;
 
@@ -262,7 +264,7 @@ void midi_usb_init(void)
 	midi_out_ep = usb_add_out_ep(EP_TYPE_BULK, 8, &out_start, NULL);
 	usb_set_rx_callback(midi_out_ep, &rx_callback);
 
-	midi_interface_desc.iInterface = usb_config_add_string("USB MIDI Interface");
+	midi_interface_desc.iInterface = usb_config_add_string(INTERACE_NAME);
 	usb_config_add_descriptor((usb_descriptor *)&midi_interface_desc);
 
 	usb_uac_add_interface(&midi_interface_desc);
