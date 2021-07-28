@@ -25,13 +25,13 @@
 #define SAMPLE_TYPE int32_t
 #define SUBFRAME_SIZE 3
 #define BIT_RESOLUTION 24
-#define SCALER 0xFFFFFF
+#define SCALER 0x7FFFFF
 #elif CONFIG_AUDIO_USB_SAMPLE_FORMAT == s16
 #define FORMAT_TAG 0x0001
 #define SAMPLE_TYPE int16_t
 #define SUBFRAME_SIZE 2
 #define BIT_RESOLUTION 16
-#define SCALER 0xFFFF
+#define SCALER 0x7FFF
 #else
 #error Unsupported Sample Format!
 #endif
