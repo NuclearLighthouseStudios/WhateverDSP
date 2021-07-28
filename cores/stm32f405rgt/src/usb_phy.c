@@ -261,9 +261,20 @@ void OTG_FS_IRQHandler(void)
 
 }
 
+void usb_phy_cancel_transmit(usb_in_endpoint *ep)
+{
+	SET_BIT(USB_OTG_FS_INEP(ep->epnum)->DIEPCTL, USB_OTG_DIEPCTL_EPDIS | USB_OTG_DIEPCTL_SNAK);
+
+	MODIFY_REG(USB_OTG_FS->GRSTCTL, USB_OTG_GRSTCTL_TXFNUM_Msk, (ep->fifo_num << USB_OTG_GRSTCTL_TXFNUM_Pos) | USB_OTG_GRSTCTL_TXFFLSH);
+	while (READ_BIT(USB_OTG_FS->GRSTCTL, USB_OTG_GRSTCTL_TXFFLSH))
+		__NOP();
+}
 
 void usb_phy_transmit(usb_in_endpoint *ep)
 {
+	if (READ_BIT(USB_OTG_FS_INEP(ep->epnum)->DIEPCTL, USB_OTG_DIEPCTL_EPENA))
+		usb_phy_cancel_transmit(ep);
+
 	int pkg_count = 1;
 
 	long int size = ep->tx_size - ep->tx_count;
@@ -319,8 +330,16 @@ void usb_phy_transmit(usb_in_endpoint *ep)
 	}
 }
 
+void usb_phy_cancel_receive(usb_out_endpoint *ep)
+{
+	SET_BIT(USB_OTG_FS_OUTEP(ep->epnum)->DOEPCTL, USB_OTG_DOEPCTL_EPDIS | USB_OTG_DOEPCTL_SNAK);
+}
+
 void usb_phy_receive(usb_out_endpoint *ep)
 {
+	if (READ_BIT(USB_OTG_FS_OUTEP(ep->epnum)->DOEPCTL, USB_OTG_DOEPCTL_EPENA))
+		usb_phy_cancel_receive(ep);
+
 	size_t size = ep->rx_size - ep->rx_count;
 	int pkg_count = 1;
 
@@ -461,15 +480,12 @@ void usb_phy_reset(void)
 	fifo_alloc_num = 0;
 
 	// Flush transmit fifos
-	SET_BIT(USB_OTG_FS->GRSTCTL, 0x10 << USB_OTG_GRSTCTL_TXFNUM_Pos);
-	SET_BIT(USB_OTG_FS->GRSTCTL, USB_OTG_GRSTCTL_TXFFLSH);
-
+	MODIFY_REG(USB_OTG_FS->GRSTCTL, USB_OTG_GRSTCTL_TXFNUM_Msk, (0x10 << USB_OTG_GRSTCTL_TXFNUM_Pos) | USB_OTG_GRSTCTL_TXFFLSH);
 	while (READ_BIT(USB_OTG_FS->GRSTCTL, USB_OTG_GRSTCTL_TXFFLSH))
 		__NOP();
 
 	// Flush receive fifo
 	SET_BIT(USB_OTG_FS->GRSTCTL, USB_OTG_GRSTCTL_RXFFLSH);
-
 	while (READ_BIT(USB_OTG_FS->GRSTCTL, USB_OTG_GRSTCTL_RXFFLSH))
 		__NOP();
 }
