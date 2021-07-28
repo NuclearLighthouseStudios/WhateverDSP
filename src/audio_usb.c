@@ -1,6 +1,5 @@
 #include <stdbool.h>
-#include <string.h>
-#include <stdio.h>
+#include <math.h>
 
 #include "config.h"
 
@@ -77,11 +76,20 @@ void audio_usb_out(float in_buffer[][2], int len)
 		if (buff_length >= FRAME_SIZE - 2 * SUBFRAME_SIZE)
 			return;
 
+	#if SATURATE == true
+		sample = fminf(fmaxf(in_buffer[i][0], -1.0f), 1.0f) * SCALER;
+	#else
 		sample = in_buffer[i][0] * SCALER;
+	#endif
+
 		*((SAMPLE_TYPE *)&tx_buf[active_buf][buff_length]) = sample;
 		buff_length += SUBFRAME_SIZE;
 
-		sample = in_buffer[i][0] * SCALER;
+	#if SATURATE == true
+		sample = fminf(fmaxf(in_buffer[i][1], -1.0f), 1.0f) * SCALER;
+	#else
+		sample = in_buffer[i][1] * SCALER;
+	#endif
 		*((SAMPLE_TYPE *)&tx_buf[active_buf][buff_length]) = sample;
 		buff_length += SUBFRAME_SIZE;
 	}
