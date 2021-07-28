@@ -268,7 +268,7 @@ static bool midi_usb_can_transmit(void)
 
 void midi_usb_init(void)
 {
-	midi_in_ep = usb_add_in_ep(EP_TYPE_BULK, 8, 0x18, &in_start, &in_stop);
+	midi_in_ep = usb_add_in_ep(EP_TYPE_BULK, 8, 32, &in_start, &in_stop);
 	usb_set_tx_callback(midi_in_ep, &tx_callback);
 
 	midi_out_ep = usb_add_out_ep(EP_TYPE_BULK, 8, &out_start, NULL);

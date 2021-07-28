@@ -37,18 +37,19 @@ static int __CCMRAM fifo_alloc_num;
 
 static int fifo_alloc(size_t size)
 {
+	size_t word_size = (size + 3) / 4;
 	if (fifo_alloc_num == 0)
 	{
-		MODIFY_REG(USB_OTG_FS->DIEPTXF0_HNPTXFSIZ, USB_OTG_TX0FD_Msk, size << USB_OTG_TX0FD_Pos);
+		MODIFY_REG(USB_OTG_FS->DIEPTXF0_HNPTXFSIZ, USB_OTG_TX0FD_Msk, word_size << USB_OTG_TX0FD_Pos);
 		MODIFY_REG(USB_OTG_FS->DIEPTXF0_HNPTXFSIZ, USB_OTG_TX0FSA_Msk, fifo_alloc_pos << USB_OTG_TX0FSA_Pos);
 	}
 	else
 	{
-		MODIFY_REG(USB_OTG_FS->DIEPTXF[fifo_alloc_num - 1], USB_OTG_DIEPTXF_INEPTXFD_Msk, size << USB_OTG_DIEPTXF_INEPTXFD_Pos);
+		MODIFY_REG(USB_OTG_FS->DIEPTXF[fifo_alloc_num - 1], USB_OTG_DIEPTXF_INEPTXFD_Msk, word_size << USB_OTG_DIEPTXF_INEPTXFD_Pos);
 		MODIFY_REG(USB_OTG_FS->DIEPTXF[fifo_alloc_num - 1], USB_OTG_DIEPTXF_INEPTXSA_Msk, fifo_alloc_pos << USB_OTG_DIEPTXF_INEPTXSA_Pos);
 	}
 
-	fifo_alloc_pos += size;
+	fifo_alloc_pos += word_size;
 	fifo_alloc_num++;
 
 	return fifo_alloc_num - 1;
@@ -475,8 +476,9 @@ void usb_phy_reset(void)
 	}
 
 	// Set receive fifo size
-	USB_OTG_FS->GRXFSIZ = USB_PHY_RX_FIFO_SIZE;
-	fifo_alloc_pos = USB_PHY_RX_FIFO_SIZE;
+	size_t rx_fifo_size = (USB_PHY_RX_FIFO_SIZE + 3) / 4;
+	USB_OTG_FS->GRXFSIZ = rx_fifo_size;
+	fifo_alloc_pos = rx_fifo_size;
 	fifo_alloc_num = 0;
 
 	// Flush transmit fifos

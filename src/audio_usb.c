@@ -115,7 +115,7 @@ static bool handle_setup(usb_setup_packet *packet, usb_in_endpoint *in_ep, usb_o
 
 void audio_usb_init(void)
 {
-	audio_in_ep = usb_add_in_ep(EP_TYPE_ISOCHRONOUS, 512, 128, &in_start, &in_stop);
+	audio_in_ep = usb_add_in_ep(EP_TYPE_ISOCHRONOUS, 512, 512, &in_start, &in_stop);
 	usb_set_tx_callback(audio_in_ep, &tx_callback);
 
 	usb_config_add_descriptor((usb_descriptor *)&audio_input_terminal);

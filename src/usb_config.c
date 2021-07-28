@@ -301,7 +301,7 @@ void usb_config_init(void)
 	usb_set_setup_callback(setup_out_ep, &(handle_setup));
 	usb_set_rx_callback(setup_out_ep, &rx_done);
 
-	setup_in_ep = usb_add_in_ep(EP_TYPE_CONTROL, 64, 0x18, NULL, NULL);
+	setup_in_ep = usb_add_in_ep(EP_TYPE_CONTROL, 64, 96, NULL, NULL);
 	usb_set_tx_callback(setup_in_ep, &tx_done);
 
 	device_descriptor.iManufacturer = usb_config_add_string(USB_MANUFACTURER_STR);
