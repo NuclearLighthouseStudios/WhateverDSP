@@ -12,6 +12,8 @@
 
 #include "conf/usb_config.h"
 
+static uint16_t __CCMRAM device_status = 0b01;
+static uint8_t __CCMRAM configuration = 0x00;
 
 static usb_in_endpoint __CCMRAM *setup_in_ep;
 static usb_out_endpoint __CCMRAM *setup_out_ep;
@@ -23,6 +25,8 @@ static int __CCMRAM num_conf_descriptors = 0;
 #define MAX_CONF_DESC_SIZE 1024
 static uint8_t __CCMRAM conf_desc_buffer[MAX_CONF_DESC_SIZE];
 
+#define MAX_INTERFACES 8
+static usb_config_setup_handler __CCMRAM interface_setup_handlers[MAX_INTERFACES];
 static int __CCMRAM num_interfaces = 0;
 
 #define MAX_STRING_DESCS 8
@@ -48,10 +52,22 @@ static void send_descriptor(usb_descriptor *desc, size_t length)
 	usb_transmit((uint8_t *)desc, size, setup_in_ep);
 }
 
-static void handle_setup(usb_out_endpoint *ep, usb_setup_packet *packet)
+static bool handle_device_setup(usb_setup_packet *packet)
 {
 	switch (packet->bRequest)
 	{
+		// GET_STATUS
+		case 0:
+		{
+			size_t size = sizeof(device_status);
+
+			if (size > packet->wLength)
+				size = packet->wLength;
+
+			usb_transmit((uint8_t *)&device_status, size, setup_in_ep);
+		}
+		break;
+
 		// SET_ADDRESS
 		case 5:
 		{
@@ -102,20 +118,12 @@ static void handle_setup(usb_out_endpoint *ep, usb_setup_packet *packet)
 					if (index != 0)
 					{
 						if (index > num_string_descriptors)
-						{
-							usb_phy_in_ep_stall(setup_in_ep);
-							usb_phy_out_ep_stall(setup_out_ep);
-							return;
-						}
+							return false;
 
 						char *str = string_descriptors[index - 1];
 
 						if (str == NULL)
-						{
-							usb_phy_in_ep_stall(setup_in_ep);
-							usb_phy_out_ep_stall(setup_out_ep);
-							return;
-						}
+							return false;
 
 						size_t length = strlen(str);
 						if (length > USB_CONFIG_MAX_STR_DESC_LENGTH)
@@ -140,35 +148,75 @@ static void handle_setup(usb_out_endpoint *ep, usb_setup_packet *packet)
 				default:
 				{
 					printf("GET_DESC? %d[%d] %d\n", type, index, packet->wLength);
-					usb_phy_in_ep_stall(setup_in_ep);
-					usb_phy_out_ep_stall(setup_out_ep);
-					return;
+					return false;
 				}
 			}
+		}
+		break;
+
+		// GET_CONFIGURATION
+		case 8:
+		{
+			size_t size = sizeof(configuration);
+
+			if (size > packet->wLength)
+				size = packet->wLength;
+
+			usb_transmit((uint8_t *)&configuration, size, setup_in_ep);
 		}
 		break;
 
 		// SET_CONFIGURATION
 		case 9:
 		{
+			configuration = packet->wValue & 0xff;
 			usb_configure();
-		}
-		break;
-
-		// SET_INTERFACE
-		case 11:
-		{
-			// printf("SET_INTERFACE [%d] %d\n", packet->wIndex, packet->wValue);
 		}
 		break;
 
 		default:
 		{
-			usb_phy_in_ep_stall(setup_in_ep);
-			usb_phy_out_ep_stall(setup_out_ep);
 			printf("SETUP? %d\n", packet->bRequest);
+			return false;
+		}
+	}
+
+	return true;
+}
+
+static void handle_setup(usb_out_endpoint *ep, usb_setup_packet *packet)
+{
+	int recipient = packet->bmRequestType & 0x0f;
+	int direction = packet->bmRequestType & 0x80;
+
+	bool success;
+
+	switch (recipient)
+	{
+		case 0x00:
+			success = handle_device_setup(packet);
+			break;
+
+		case 0x01:
+			if ((packet->wIndex < num_interfaces) && (interface_setup_handlers[packet->wIndex] != NULL))
+				success = interface_setup_handlers[packet->wIndex](packet, setup_in_ep, setup_out_ep);
+			else
+				success = false;
+			break;
+
+		default:
+		{
+			success = false;
+			printf("Recipient? %d\n", packet->bRequest);
 			return;
 		}
+	}
+
+	if (!success)
+	{
+		usb_phy_in_ep_stall(setup_in_ep);
+		usb_phy_out_ep_stall(setup_out_ep);
+		return;
 	}
 
 	if (packet->wLength > 0)
@@ -181,7 +229,7 @@ static void handle_setup(usb_out_endpoint *ep, usb_setup_packet *packet)
 		is_data_stage = false;
 
 		// Otherwise do acknowledgement based on data direction immediately
-		if (packet->bmRequest & 0x80)
+		if (direction != 0)
 			usb_receive(NULL, 0, setup_out_ep);
 		else
 			usb_transmit(NULL, 0, setup_in_ep);
@@ -212,22 +260,26 @@ static void out_start(usb_out_endpoint *ep)
 }
 
 
+void usb_config_add_interface(usb_interface_descriptor *desc, usb_config_setup_handler handler)
+{
+	if (num_interfaces >= MAX_INTERFACES)
+		return;
+
+	usb_config_add_descriptor((usb_descriptor *)desc);
+
+	if (desc->bAlternateSetting != 0)
+		num_interfaces--;
+
+	interface_setup_handlers[num_interfaces] = handler;
+	desc->bInterfaceNumber = num_interfaces;
+
+	num_interfaces++;
+}
+
 void usb_config_add_descriptor(usb_descriptor *desc)
 {
 	if (num_conf_descriptors < MAX_CONF_DESCS)
-	{
 		conf_descriptors[num_conf_descriptors++] = desc;
-
-		if (desc->bDescriptorType == 0x04)
-		{
-			if (((usb_interface_descriptor *)desc)->bAlternateSetting != 0)
-				num_interfaces--;
-
-			((usb_interface_descriptor *)desc)->bInterfaceNumber = num_interfaces;
-
-			num_interfaces++;
-		}
-	}
 }
 
 int usb_config_add_string(char *str)

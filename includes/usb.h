@@ -6,7 +6,7 @@
 
 typedef struct __PACKED
 {
-	uint8_t bmRequest;
+	uint8_t bmRequestType;
 	uint8_t bRequest;
 	uint16_t wValue;
 	uint16_t wIndex;
@@ -96,5 +96,8 @@ extern void usb_set_tx_callback(usb_in_endpoint *ep, usb_tx_callback callback);
 
 extern void usb_transmit(uint8_t *buf, size_t size, usb_in_endpoint *ep);
 extern void usb_receive(uint8_t *buf, size_t size, usb_out_endpoint *ep);
+
+extern void usb_cancel_transmit(usb_in_endpoint *ep);
+extern void usb_cancel_receive(usb_out_endpoint *ep);
 
 #endif

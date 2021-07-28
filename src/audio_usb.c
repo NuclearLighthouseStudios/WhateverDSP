@@ -17,6 +17,8 @@
 
 #include "conf/audio_usb.h"
 
+static uint8_t __CCMRAM alt_set = 0;
+
 static usb_in_endpoint __CCMRAM *audio_in_ep;
 
 static usb_audio_input_terminal_descriptor __CCMRAM audio_input_terminal = USB_AUDIO_INPUT_TERMINAL_DESCRIPTOR_INIT(1, 0x0201, 2, 0x0003);
@@ -42,7 +44,7 @@ static bool __CCMRAM active = false;
 
 static void eof_callback(uint16_t frame_num)
 {
-	if (active)
+	if ((active) && (alt_set != 0))
 		usb_transmit((uint8_t *)(tx_buf[!active_buf]), tx_length * 4, audio_in_ep);
 }
 
@@ -65,7 +67,7 @@ static void in_stop(usb_in_endpoint *ep)
 
 void audio_usb_out(float in_buffer[][2], int len)
 {
-	if (!active)
+	if ((!active) || (alt_set == 0))
 		return;
 
 	for (int i = 0; i < len; i++)
@@ -76,6 +78,39 @@ void audio_usb_out(float in_buffer[][2], int len)
 		tx_buf[active_buf][buff_length++] = in_buffer[i][0];
 		tx_buf[active_buf][buff_length++] = in_buffer[i][1];
 	}
+}
+
+static bool handle_setup(usb_setup_packet *packet, usb_in_endpoint *in_ep, usb_out_endpoint *out_ep)
+{
+	switch (packet->bRequest)
+	{
+		// GET_INTERFACE
+		case 10:
+		{
+			size_t size = sizeof(alt_set);
+
+			if (size > packet->wLength)
+				size = packet->wLength;
+
+			usb_transmit((uint8_t *)&alt_set, size, in_ep);
+		}
+		break;
+
+		// SET_INTERFACE
+		case 11:
+		{
+			alt_set = packet->wValue & 0xff;
+
+			if (alt_set == 0)
+				usb_cancel_transmit(audio_in_ep);
+		}
+		break;
+
+		default:
+			return false;
+	}
+
+	return true;
 }
 
 void audio_usb_init(void)
@@ -90,10 +125,10 @@ void audio_usb_init(void)
 	usb_uac_add_terminal((usb_descriptor *)&audio_output_terminal);
 
 	interface_desc_zb.iInterface = usb_config_add_string(INTERFACE_NAME);
-	usb_config_add_descriptor((usb_descriptor *)&interface_desc_zb);
+	usb_config_add_interface(&interface_desc_zb, &handle_setup);
 
 	interface_desc.iInterface = interface_desc_zb.iInterface;
-	usb_config_add_descriptor((usb_descriptor *)&interface_desc);
+	usb_config_add_interface(&interface_desc, &handle_setup);
 	usb_uac_add_interface(&interface_desc);
 
 	usb_config_add_descriptor((usb_descriptor *)&audio_interface_desc);

@@ -275,8 +275,7 @@ void midi_usb_init(void)
 	usb_set_rx_callback(midi_out_ep, &rx_callback);
 
 	midi_interface_desc.iInterface = usb_config_add_string(INTERACE_NAME);
-	usb_config_add_descriptor((usb_descriptor *)&midi_interface_desc);
-
+	usb_config_add_interface(&midi_interface_desc, NULL);
 	usb_uac_add_interface(&midi_interface_desc);
 
 	midi_header_desc.wTotalLength = sizeof(midi_header_desc) +

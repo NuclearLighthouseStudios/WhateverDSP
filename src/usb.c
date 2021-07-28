@@ -39,6 +39,19 @@ void usb_receive(uint8_t *buf, size_t size, usb_out_endpoint *ep)
 	usb_phy_receive(ep);
 }
 
+void usb_cancel_transmit(usb_in_endpoint *ep)
+{
+	ep->tx_size = 0;
+
+	usb_phy_cancel_transmit(ep);
+}
+
+void usb_cancel_receive(usb_out_endpoint *ep)
+{
+	ep->rx_size = 0;
+
+	usb_phy_cancel_receive(ep);
+}
 
 usb_in_endpoint *usb_add_in_ep(usb_ep_type type, size_t max_packet_size, size_t fifo_size, usb_in_start_callback start_callback, usb_in_stop_callback stop_callback)
 {
@@ -167,7 +180,7 @@ void usb_reset_sync(void)
 		in_eps[0].start_callback(&(in_eps[0]));
 }
 
-void usb_configure(void)
+void usb_configure()
 {
 	do_configure = true;
 	sys_busy(&do_configure);
