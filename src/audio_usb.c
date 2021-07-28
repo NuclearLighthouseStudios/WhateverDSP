@@ -31,28 +31,23 @@ static usb_audio_format_i_descriptor __CCMRAM audio_format_desc = USB_AUDIO_FORM
 static usb_endpoint_descriptor __CCMRAM endpoint_desc;
 static usb_audio_endpoint_descriptor __CCMRAM audio_endpoint_desc = USB_AUDIO_ENDPOINT_DESCRIPTOR_INIT();
 
-static float tx_buf[2][MAX_BUFFER_SIZE];
-static int active_buf = 0;
-static int buff_length = 0;
-static int tx_length = 0;
+static float __CCMRAM tx_buf[2][MAX_BUFFER_SIZE];
+static int __CCMRAM active_buf = 0;
+static int __CCMRAM buff_length = 0;
+static int __CCMRAM tx_length = 0;
 
-static bool active = false;
-static bool tx_done = true;
+static bool __CCMRAM active = false;
 
 #include "stm32f4xx.h"
 
 static void eof_callback(uint16_t frame_num)
 {
-	if (active && tx_done)
-	{
-		tx_done = false;
+	if (active)
 		usb_transmit((uint8_t *)(tx_buf[!active_buf]), tx_length * 4, audio_in_ep);
-	}
 }
 
 static void tx_callback(usb_in_endpoint *ep, size_t count)
 {
-	tx_done = true;
 	active_buf = !active_buf;
 	tx_length = buff_length;
 	buff_length = 0;
@@ -61,7 +56,6 @@ static void tx_callback(usb_in_endpoint *ep, size_t count)
 static void in_start(usb_in_endpoint *ep)
 {
 	active = true;
-	tx_done = true;
 }
 
 static void in_stop(usb_in_endpoint *ep)
@@ -69,7 +63,7 @@ static void in_stop(usb_in_endpoint *ep)
 	active = false;
 }
 
-void audio_usb_send(float in_buffer[][2], int len)
+void audio_usb_out(float in_buffer[][2], int len)
 {
 	if (!active)
 		return;
