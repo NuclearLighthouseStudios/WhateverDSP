@@ -147,6 +147,6 @@ typedef struct __PACKED
 
 extern void audio_usb_init(void);
 
-extern void audio_usb_send(float in_buffer[][2], int len);
+extern void audio_usb_out(float in_buffer[][2], int len);
 
 #endif
