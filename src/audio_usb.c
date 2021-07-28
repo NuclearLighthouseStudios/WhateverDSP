@@ -41,7 +41,7 @@ static bool tx_done = true;
 
 #include "stm32f4xx.h"
 
-static void sof_callback(uint16_t frame_num)
+static void eof_callback(uint16_t frame_num)
 {
 	if (active && tx_done)
 	{
@@ -109,5 +109,5 @@ void audio_usb_init(void)
 	usb_config_add_descriptor((usb_descriptor *)&endpoint_desc);
 	usb_config_add_descriptor((usb_descriptor *)&audio_endpoint_desc);
 
-	usb_phy_add_sof_callback(&sof_callback);
+	usb_phy_add_eof_callback(&eof_callback);
 }
