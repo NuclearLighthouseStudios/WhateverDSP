@@ -160,11 +160,21 @@ static void midi_usb_transmit(midi_message *message)
 	static size_t __CCMRAM sysex_length = 0;
 	static bool __CCMRAM sysex_started = false;
 
-	if ((!tx_started) || ((sys_ticks - tx_timeout > TX_TIMEOUT_TIME) && (!tx_ready)))
+	if (!tx_started)
 		return;
 
-	tx_ready = false;
+	// If this function get's called before the last transmission finished
+	// we're probably in a timeout condition, so instead of sending the real
+	// data we just send zero length packets to sense when the host starts
+	// receiving again
+	if (!tx_ready)
+	{
+		usb_transmit(NULL, 0, midi_in_ep);
+		return;
+	}
+
 	tx_timeout = sys_ticks;
+	tx_ready = false;
 
 	uint8_t cin;
 

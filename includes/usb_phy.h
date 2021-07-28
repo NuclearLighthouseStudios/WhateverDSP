@@ -19,6 +19,9 @@ extern void usb_phy_out_ep_init(usb_out_endpoint *ep);
 extern void usb_phy_transmit(usb_in_endpoint *ep);
 extern void usb_phy_receive(usb_out_endpoint *ep);
 
+extern void usb_phy_cancel_transmit(usb_in_endpoint *ep);
+extern void usb_phy_cancel_receive(usb_out_endpoint *ep);
+
 extern void usb_phy_in_ep_stall(usb_in_endpoint *ep);
 extern void usb_phy_out_ep_stall(usb_out_endpoint *ep);
 
