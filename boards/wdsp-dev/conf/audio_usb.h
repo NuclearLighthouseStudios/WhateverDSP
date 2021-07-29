@@ -19,22 +19,18 @@
 #define SAMPLE_TYPE float
 #define SUBFRAME_SIZE 4
 #define BIT_RESOLUTION 32
-#define SCALER 1.0f
-#define SATURATE false
 #elif CONFIG_AUDIO_USB_SAMPLE_FORMAT == s24
 #define FORMAT_TAG 0x0001
 #define SAMPLE_TYPE int32_t
 #define SUBFRAME_SIZE 3
 #define BIT_RESOLUTION 24
-#define SCALER (float)0x7FFFFF
-#define SATURATE true
+#define SCALER (float)INT32_MAX
 #elif CONFIG_AUDIO_USB_SAMPLE_FORMAT == s16
 #define FORMAT_TAG 0x0001
-#define SAMPLE_TYPE int16_t
+#define SAMPLE_TYPE int32_t
 #define SUBFRAME_SIZE 2
 #define BIT_RESOLUTION 16
-#define SCALER (float)0x7FFF
-#define SATURATE true
+#define SCALER (float)INT32_MAX
 #else
 #error Unsupported Sample Format!
 #endif

@@ -76,19 +76,19 @@ void audio_usb_out(float in_buffer[][2], int len)
 		if (buff_length >= FRAME_SIZE - 2 * SUBFRAME_SIZE)
 			return;
 
-	#if SATURATE == true
-		sample = fminf(fmaxf(in_buffer[i][0], -1.0f), 1.0f) * SCALER;
+	#ifdef SCALER
+		sample = (SAMPLE_TYPE)(in_buffer[i][0] * SCALER) >> (sizeof(SAMPLE_TYPE) * 8 - BIT_RESOLUTION);
 	#else
-		sample = in_buffer[i][0] * SCALER;
+		sample = in_buffer[i][0];
 	#endif
 
 		*((SAMPLE_TYPE *)&tx_buf[active_buf][buff_length]) = sample;
 		buff_length += SUBFRAME_SIZE;
 
-	#if SATURATE == true
-		sample = fminf(fmaxf(in_buffer[i][1], -1.0f), 1.0f) * SCALER;
+	#ifdef SCALER
+		sample = (SAMPLE_TYPE)(in_buffer[i][1] * SCALER) >> (sizeof(SAMPLE_TYPE) * 8 - BIT_RESOLUTION);
 	#else
-		sample = in_buffer[i][1] * SCALER;
+		sample = in_buffer[i][1];
 	#endif
 		*((SAMPLE_TYPE *)&tx_buf[active_buf][buff_length]) = sample;
 		buff_length += SUBFRAME_SIZE;
