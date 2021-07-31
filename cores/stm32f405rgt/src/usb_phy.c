@@ -95,7 +95,7 @@ void OTG_FS_IRQHandler(void)
 	if (READ_BIT(USB_OTG_FS->GINTSTS, USB_OTG_GINTSTS_USBRST))
 	{
 		SET_BIT(USB_OTG_FS->GINTSTS, USB_OTG_GINTSTS_USBRST);
-		usb_reset();
+		sys_schedule(&usb_reset);
 	}
 
 	if (READ_BIT(USB_OTG_FS->GINTSTS, USB_OTG_GINTSTS_EOPF))
@@ -105,7 +105,7 @@ void OTG_FS_IRQHandler(void)
 		frame_num = ((USB_OTG_FS_DEVICE->DSTS & USB_OTG_DSTS_FNSOF_Msk) >> USB_OTG_DSTS_FNSOF_Pos) + 1;
 
 		for (int i = 0; i < num_eof_callbacks; i++)
-			eof_callbacks[i](frame_num);
+			sys_schedule(eof_callbacks[i]);
 	}
 
 	if (READ_BIT(USB_OTG_FS->GINTSTS, USB_OTG_GINTSTS_RXFLVL))

@@ -3,7 +3,7 @@
 
 #include "usb.h"
 
-typedef void (*usb_phy_eof_callback)(uint16_t frame_num);
+typedef void (*usb_phy_eof_callback)(void);
 
 extern void usb_phy_init(usb_in_endpoint in_eps[], usb_out_endpoint out_eps[]);
 extern void usb_phy_start(void);

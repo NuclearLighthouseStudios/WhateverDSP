@@ -5,10 +5,13 @@
 
 volatile extern unsigned long int sys_ticks;
 
+typedef void (*sys_schedulable_func)(void);
+
 extern void sys_init(void);
 extern void sys_idle(void);
 
 extern void sys_busy(volatile bool *flag);
+extern void sys_schedule(sys_schedulable_func func);
 
 extern void sys_delay(unsigned long int delay);
 

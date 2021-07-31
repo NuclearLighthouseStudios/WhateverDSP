@@ -35,23 +35,19 @@ static usb_audio_endpoint_descriptor __CCMRAM audio_endpoint_desc = USB_AUDIO_EN
 static uint8_t __CCMRAM tx_buf[2][FRAME_SIZE];
 static int __CCMRAM active_buf = 0;
 static int __CCMRAM buff_length = 0;
-static int __CCMRAM tx_length = 0;
 
 static bool __CCMRAM active = false;
 
 #include "stm32f4xx.h"
 
-static void eof_callback(uint16_t frame_num)
+static void eof_callback(void)
 {
 	if ((active) && (alt_set != 0))
-		usb_transmit((uint8_t *)(tx_buf[!active_buf]), tx_length, audio_in_ep);
-}
-
-static void tx_callback(usb_in_endpoint *ep, size_t count)
-{
-	active_buf = !active_buf;
-	tx_length = buff_length;
-	buff_length = 0;
+	{
+		usb_transmit((uint8_t *)(tx_buf[active_buf]), buff_length, audio_in_ep);
+		buff_length = 0;
+		active_buf = !active_buf;
+	}
 }
 
 static void in_start(usb_in_endpoint *ep)
@@ -131,7 +127,6 @@ static bool handle_setup(usb_setup_packet *packet, usb_in_endpoint *in_ep, usb_o
 void audio_usb_init(void)
 {
 	audio_in_ep = usb_add_in_ep(EP_TYPE_ISOCHRONOUS, FRAME_SIZE, FRAME_SIZE, &in_start, &in_stop);
-	usb_set_tx_callback(audio_in_ep, &tx_callback);
 
 	usb_config_add_descriptor((usb_descriptor *)&audio_input_terminal);
 	usb_uac_add_terminal((usb_descriptor *)&audio_input_terminal);

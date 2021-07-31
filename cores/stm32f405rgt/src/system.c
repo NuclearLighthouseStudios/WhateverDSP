@@ -13,6 +13,9 @@ volatile unsigned long int __CCMRAM sys_ticks = 0;
 #define MAX_BUSY_FLAGS 16
 static volatile bool __CCMRAM *busy_flags[MAX_BUSY_FLAGS];
 
+#define MAX_SCHEDULED_CALLS 16
+static __CCMRAM sys_schedulable_func scheduled_calls[MAX_SCHEDULED_CALLS];
+
 void SysTick_Handler(void)
 {
 	sys_ticks++;
@@ -127,8 +130,29 @@ void sys_busy(volatile bool *flag)
 	}
 }
 
+void sys_schedule(sys_schedulable_func func)
+{
+	for (int i = 0; i < MAX_SCHEDULED_CALLS; i++)
+	{
+		if (!scheduled_calls[i])
+		{
+			scheduled_calls[i] = func;
+			return;
+		}
+	}
+}
+
 void sys_idle(void)
 {
+	for (int i = 0; i < MAX_SCHEDULED_CALLS; i++)
+	{
+		if (scheduled_calls[i])
+		{
+			scheduled_calls[i]();
+			scheduled_calls[i] = NULL;
+		}
+	}
+
 	for (int i = 0; i < MAX_BUSY_FLAGS; i++)
 	{
 		if (busy_flags[i])
@@ -189,6 +213,9 @@ void sys_init(void)
 
 	for (int i = 0; i < MAX_BUSY_FLAGS; i++)
 		busy_flags[i] = NULL;
+
+	for (int i = 0; i < MAX_SCHEDULED_CALLS; i++)
+		scheduled_calls[i] = NULL;
 
 #ifdef DEBUG
 	// Enable trace and cycle counter for performance monitoring
