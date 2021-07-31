@@ -264,7 +264,10 @@ void OTG_FS_IRQHandler(void)
 
 void usb_phy_cancel_transmit(usb_in_endpoint *ep)
 {
+	SET_BIT(USB_OTG_FS_INEP(ep->epnum)->DIEPINT, USB_OTG_DIEPINT_EPDISD);
 	SET_BIT(USB_OTG_FS_INEP(ep->epnum)->DIEPCTL, USB_OTG_DIEPCTL_EPDIS | USB_OTG_DIEPCTL_SNAK);
+	while (!READ_BIT(USB_OTG_FS_INEP(ep->epnum)->DIEPINT, USB_OTG_DIEPINT_EPDISD))
+		__NOP();
 
 	MODIFY_REG(USB_OTG_FS->GRSTCTL, USB_OTG_GRSTCTL_TXFNUM_Msk, (ep->fifo_num << USB_OTG_GRSTCTL_TXFNUM_Pos) | USB_OTG_GRSTCTL_TXFFLSH);
 	while (READ_BIT(USB_OTG_FS->GRSTCTL, USB_OTG_GRSTCTL_TXFFLSH))
@@ -333,7 +336,10 @@ void usb_phy_transmit(usb_in_endpoint *ep)
 
 void usb_phy_cancel_receive(usb_out_endpoint *ep)
 {
+	SET_BIT(USB_OTG_FS_OUTEP(ep->epnum)->DOEPINT, USB_OTG_DOEPINT_EPDISD);
 	SET_BIT(USB_OTG_FS_OUTEP(ep->epnum)->DOEPCTL, USB_OTG_DOEPCTL_EPDIS | USB_OTG_DOEPCTL_SNAK);
+	while (!READ_BIT(USB_OTG_FS_OUTEP(ep->epnum)->DOEPINT, USB_OTG_DOEPINT_EPDISD))
+		__NOP();
 }
 
 void usb_phy_receive(usb_out_endpoint *ep)
