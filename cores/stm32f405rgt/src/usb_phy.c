@@ -179,8 +179,8 @@ void OTG_FS_IRQHandler(void)
 						size_t left = (USB_OTG_FS_OUTEP(epnum)->DOEPTSIZ & USB_OTG_DOEPTSIZ_XFRSIZ_Msk) >> USB_OTG_DOEPTSIZ_XFRSIZ_Pos;
 
 						// If the current transfer went through completely start another one.
-						// Non isochronous transfers should always end with a short or zero length packet.
-						if ((left == 0) && (ep->type != EP_TYPE_ISOCHRONOUS))
+						// Bulk transfers should always end with a short or zero length packet.
+						if ((left == 0) && (ep->type == EP_TYPE_BULK))
 							usb_phy_receive(ep);
 						else
 							ep->rx_ready = true;
@@ -235,8 +235,8 @@ void OTG_FS_IRQHandler(void)
 					if (ep->tx_count >= ep->tx_size)
 					{
 						// In case our amount of data to send doesn't result in a "short packet" at the end
-						// we need to send one more zero size packet to signal the end of transmission for non iso transaction
-						if ((ep->tx_size != 0) && (ep->tx_size % ep->max_packet_size == 0) && (ep->type != EP_TYPE_ISOCHRONOUS))
+						// we need to send one more zero size packet to signal the end of transmission for bulk transfers
+						if ((ep->tx_size != 0) && (ep->tx_size % ep->max_packet_size == 0) && (ep->type == EP_TYPE_BULK))
 						{
 							ep->tx_size = 0;
 							usb_phy_transmit(ep);
@@ -264,10 +264,10 @@ void OTG_FS_IRQHandler(void)
 
 void usb_phy_cancel_transmit(usb_in_endpoint *ep)
 {
-	SET_BIT(USB_OTG_FS_INEP(ep->epnum)->DIEPINT, USB_OTG_DIEPINT_EPDISD);
+	// SET_BIT(USB_OTG_FS_INEP(ep->epnum)->DIEPINT, USB_OTG_DIEPINT_EPDISD);
 	SET_BIT(USB_OTG_FS_INEP(ep->epnum)->DIEPCTL, USB_OTG_DIEPCTL_EPDIS | USB_OTG_DIEPCTL_SNAK);
-	while (!READ_BIT(USB_OTG_FS_INEP(ep->epnum)->DIEPINT, USB_OTG_DIEPINT_EPDISD))
-		__NOP();
+	// while (!READ_BIT(USB_OTG_FS_INEP(ep->epnum)->DIEPINT, USB_OTG_DIEPINT_EPDISD))
+	// 	__NOP();
 
 	MODIFY_REG(USB_OTG_FS->GRSTCTL, USB_OTG_GRSTCTL_TXFNUM_Msk, (ep->fifo_num << USB_OTG_GRSTCTL_TXFNUM_Pos) | USB_OTG_GRSTCTL_TXFFLSH);
 	while (READ_BIT(USB_OTG_FS->GRSTCTL, USB_OTG_GRSTCTL_TXFFLSH))
@@ -336,10 +336,10 @@ void usb_phy_transmit(usb_in_endpoint *ep)
 
 void usb_phy_cancel_receive(usb_out_endpoint *ep)
 {
-	SET_BIT(USB_OTG_FS_OUTEP(ep->epnum)->DOEPINT, USB_OTG_DOEPINT_EPDISD);
+	// SET_BIT(USB_OTG_FS_OUTEP(ep->epnum)->DOEPINT, USB_OTG_DOEPINT_EPDISD);
 	SET_BIT(USB_OTG_FS_OUTEP(ep->epnum)->DOEPCTL, USB_OTG_DOEPCTL_EPDIS | USB_OTG_DOEPCTL_SNAK);
-	while (!READ_BIT(USB_OTG_FS_OUTEP(ep->epnum)->DOEPINT, USB_OTG_DOEPINT_EPDISD))
-		__NOP();
+	// while (!READ_BIT(USB_OTG_FS_OUTEP(ep->epnum)->DOEPINT, USB_OTG_DOEPINT_EPDISD))
+		// __NOP();
 }
 
 void usb_phy_receive(usb_out_endpoint *ep)
@@ -369,6 +369,14 @@ void usb_phy_receive(usb_out_endpoint *ep)
 	MODIFY_REG(USB_OTG_FS_OUTEP(ep->epnum)->DOEPTSIZ, USB_OTG_DOEPTSIZ_XFRSIZ_Msk, size << USB_OTG_DOEPTSIZ_XFRSIZ_Pos);
 
 	CLEAR_BIT(USB_OTG_FS_OUTEP(ep->epnum)->DOEPCTL, USB_OTG_DOEPCTL_STALL);
+
+	if (ep->type == EP_TYPE_ISOCHRONOUS)
+	{
+		if (frame_num & 0b1)
+			SET_BIT(USB_OTG_FS_OUTEP(ep->epnum)->DOEPCTL, USB_OTG_DOEPCTL_SODDFRM);
+		else
+			SET_BIT(USB_OTG_FS_OUTEP(ep->epnum)->DOEPCTL, USB_OTG_DOEPCTL_SD0PID_SEVNFRM);
+	}
 
 	SET_BIT(USB_OTG_FS_OUTEP(ep->epnum)->DOEPCTL, USB_OTG_DOEPCTL_EPENA | USB_OTG_DOEPCTL_CNAK);
 }
