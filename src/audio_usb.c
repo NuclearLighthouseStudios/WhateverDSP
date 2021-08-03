@@ -59,35 +59,36 @@ static usb_endpoint_descriptor __CCMRAM synch_endpoint_desc;
 
 
 static uint8_t __CCMRAM tx_buf[2][FRAME_SIZE];
-static int __CCMRAM tx_active_buf = 0;
-static int __CCMRAM tx_buf_length = 0;
+static uint32_t __CCMRAM tx_active_buf = 0;
+static uint32_t __CCMRAM tx_buf_length = 0;
 
-#define IN_BUF_SIZE FRAME_SIZE / 4 * 2
 static uint8_t __CCMRAM rx_buf[FRAME_SIZE];
-static SAMPLE_TYPE __CCMRAM in_buf[IN_BUF_SIZE];
-static int in_read_pos = 0;
-static int in_write_pos = 0;
-static int in_fill_at_rx = 0;
+static SAMPLE_TYPE __CCMRAM in_buf[2][IN_BUF_SIZE];
+static uint32_t __CCMRAM in_read_pos = 0;
+static uint32_t __CCMRAM in_write_pos = 0;
+static bool __CCMRAM in_filled = false;
 
 static uint32_t __CCMRAM num_samples = 0;
 static uint32_t __CCMRAM num_frames = 0;
+static uint32_t __CCMRAM in_buf_fill = 0;
+
+static uint32_t __CCMRAM sync_sample_rate;
 
 
 static void eof_callback(void)
 {
-	static uint32_t __CCMRAM sync_sample_rate;
-
 	if ((out_active) && (out_alt_setting != 0))
 	{
 		num_frames++;
 
 		if (num_frames >= (1 << SYNC_INTERVAL))
 		{
-			float servo = ((float)in_fill_at_rx - (float)(IN_BUF_SIZE / 4)) * SYNC_SERVO_AMOUNT;
+			float servo = (((float)in_buf_fill / (float)num_frames) - (float)IN_BUF_TARGET) * SYNC_SERVO_AMOUNT;
 			sync_sample_rate = ((float)num_samples / (float)num_frames - servo) * (float)(1 << 14);
 
 			num_frames = 0;
 			num_samples = 0;
+			in_buf_fill = 0;
 		}
 
 		usb_transmit((uint8_t *)&sync_sample_rate, 3, synch_in_ep);
@@ -105,19 +106,32 @@ static void eof_callback(void)
 
 static void rx_callback(usb_out_endpoint *ep, uint8_t *buf, size_t count)
 {
-	in_fill_at_rx = in_write_pos - in_read_pos;
-	if (in_fill_at_rx < 0)
-		in_fill_at_rx += IN_BUF_SIZE;
+	int32_t fill = in_write_pos - in_read_pos;
+	if (fill < 0)
+		fill += IN_BUF_SIZE;
 
-	for (int i = 0; i < count; i += SUBFRAME_SIZE)
+	if (fill >= IN_BUF_TARGET * 2)
+		in_filled = true;
+
+	in_buf_fill += fill;
+
+	for (int i = 0; i < count; i += SUBFRAME_SIZE * 2)
 	{
-		in_buf[in_write_pos++] = *((SAMPLE_TYPE *)&buf[i]);
+		in_buf[0][in_write_pos] = *((SAMPLE_TYPE *)&buf[i]);
+		in_buf[1][in_write_pos] = *((SAMPLE_TYPE *)&buf[i + SUBFRAME_SIZE]);
+
+		in_write_pos++;
 
 		if (in_write_pos >= IN_BUF_SIZE)
 			in_write_pos = 0;
 
 		if (in_write_pos == in_read_pos)
+		{
 			in_read_pos++;
+
+			if (in_read_pos >= IN_BUF_SIZE)
+				in_read_pos -= IN_BUF_SIZE;
+		}
 	}
 }
 
@@ -176,23 +190,32 @@ void audio_usb_in(float buffer[][2], int len)
 
 	num_samples += len;
 
+	if (!in_filled)
+		return;
+
 	for (int i = 0; i < len; i++)
 	{
-		for (int s = 0; s < 2; s++)
+		if (in_read_pos == in_write_pos)
 		{
-			if (in_read_pos == in_write_pos)
-				break;
-
-		#ifdef SCALER
-			buffer[i][s] += (in_buf[in_read_pos] << (sizeof(SAMPLE_TYPE) * 8 - BIT_RESOLUTION)) / (float)SCALER;
-		#else
-			buffer[i][s] += in_buf[in_read_pos];
-		#endif
-
-			in_read_pos++;
-			if (in_read_pos >= IN_BUF_SIZE)
-				in_read_pos = 0;
+			in_filled = false;
+			break;
 		}
+
+	#ifdef SCALER
+		buffer[i][0] += (in_buf[0][in_read_pos] << (sizeof(SAMPLE_TYPE) * 8 - BIT_RESOLUTION)) / (float)SCALER;
+	#else
+		buffer[i][0] += in_buf[0][in_read_pos];
+	#endif
+
+	#ifdef SCALER
+		buffer[i][1] += (in_buf[1][in_read_pos] << (sizeof(SAMPLE_TYPE) * 8 - BIT_RESOLUTION)) / (float)SCALER;
+	#else
+		buffer[i][1] += in_buf[1][in_read_pos];
+	#endif
+
+		in_read_pos++;
+		if (in_read_pos >= IN_BUF_SIZE)
+			in_read_pos = 0;
 	}
 }
 
@@ -252,6 +275,7 @@ static bool handle_out_setup(usb_setup_packet *packet, usb_in_endpoint *in_ep, u
 
 			if (out_alt_setting != 0)
 			{
+				sync_sample_rate = ((float)SAMPLE_RATE / 1000.0f) * (float)(1 << 14);
 				num_samples = 0;
 				num_frames = 0;
 				in_read_pos = 0;
