@@ -188,7 +188,7 @@ void audio_usb_in(float buffer[][2], int len)
 		if (in_read_pos == in_write_pos)
 			break;
 
-		sample = *((SAMPLE_TYPE *)&in_buf[in_read_pos]);
+		sample = ((SAMPLE_TYPE *)in_buf)[in_read_pos];
 
 	#ifdef SCALER
 		buffer[i][0] += (sample << (sizeof(SAMPLE_TYPE) * 8 - BIT_RESOLUTION)) / (float)SCALER;
@@ -204,7 +204,7 @@ void audio_usb_in(float buffer[][2], int len)
 		if (in_read_pos == in_write_pos)
 			break;
 
-		sample = *((SAMPLE_TYPE *)&in_buf[in_read_pos]);
+		sample = ((SAMPLE_TYPE *)in_buf)[in_read_pos];
 
 	#ifdef SCALER
 		buffer[i][1] += (sample << (sizeof(SAMPLE_TYPE) * 8 - BIT_RESOLUTION)) / (float)SCALER;
