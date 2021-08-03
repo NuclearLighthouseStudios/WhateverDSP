@@ -64,7 +64,7 @@ static int __CCMRAM tx_buf_length = 0;
 
 #define IN_BUF_SIZE FRAME_SIZE / 4 * 2
 static uint8_t __CCMRAM rx_buf[FRAME_SIZE];
-static uint32_t __CCMRAM in_buf[IN_BUF_SIZE];
+static SAMPLE_TYPE __CCMRAM in_buf[IN_BUF_SIZE];
 static int in_read_pos = 0;
 static int in_write_pos = 0;
 static int in_fill_at_rx = 0;
@@ -111,7 +111,7 @@ static void rx_callback(usb_out_endpoint *ep, uint8_t *buf, size_t count)
 
 	for (int i = 0; i < count; i += SUBFRAME_SIZE)
 	{
-		in_buf[in_write_pos++] = *((uint32_t *)&buf[i]);
+		in_buf[in_write_pos++] = *((SAMPLE_TYPE *)&buf[i]);
 
 		if (in_write_pos >= IN_BUF_SIZE)
 			in_write_pos = 0;
@@ -155,22 +155,17 @@ void audio_usb_out(float buffer[][2], int len)
 		if (tx_buf_length >= FRAME_SIZE - 2 * SUBFRAME_SIZE)
 			return;
 
-	#ifdef SCALER
-		sample = (SAMPLE_TYPE)(buffer[i][0] * SCALER) >> (sizeof(SAMPLE_TYPE) * 8 - BIT_RESOLUTION);
-	#else
-		sample = buffer[i][0];
-	#endif
+		for (int s = 0; s < 2; s++)
+		{
+		#ifdef SCALER
+			sample = (SAMPLE_TYPE)(buffer[i][s] * SCALER) >> (sizeof(SAMPLE_TYPE) * 8 - BIT_RESOLUTION);
+		#else
+			sample = buffer[i][s];
+		#endif
 
-		*((SAMPLE_TYPE *)&tx_buf[tx_active_buf][tx_buf_length]) = sample;
-		tx_buf_length += SUBFRAME_SIZE;
-
-	#ifdef SCALER
-		sample = (SAMPLE_TYPE)(buffer[i][1] * SCALER) >> (sizeof(SAMPLE_TYPE) * 8 - BIT_RESOLUTION);
-	#else
-		sample = buffer[i][1];
-	#endif
-		*((SAMPLE_TYPE *)&tx_buf[tx_active_buf][tx_buf_length]) = sample;
-		tx_buf_length += SUBFRAME_SIZE;
+			*((SAMPLE_TYPE *)&tx_buf[tx_active_buf][tx_buf_length]) = sample;
+			tx_buf_length += SUBFRAME_SIZE;
+		}
 	}
 }
 
@@ -181,40 +176,23 @@ void audio_usb_in(float buffer[][2], int len)
 
 	num_samples += len;
 
-	SAMPLE_TYPE sample;
-
 	for (int i = 0; i < len; i++)
 	{
-		if (in_read_pos == in_write_pos)
-			break;
+		for (int s = 0; s < 2; s++)
+		{
+			if (in_read_pos == in_write_pos)
+				break;
 
-		sample = ((SAMPLE_TYPE *)in_buf)[in_read_pos];
+		#ifdef SCALER
+			buffer[i][s] += (in_buf[in_read_pos] << (sizeof(SAMPLE_TYPE) * 8 - BIT_RESOLUTION)) / (float)SCALER;
+		#else
+			buffer[i][s] += in_buf[in_read_pos];
+		#endif
 
-	#ifdef SCALER
-		buffer[i][0] += (sample << (sizeof(SAMPLE_TYPE) * 8 - BIT_RESOLUTION)) / (float)SCALER;
-	#else
-		buffer[i][0] += sample;
-	#endif
-
-		in_read_pos++;
-		if (in_read_pos >= IN_BUF_SIZE)
-			in_read_pos = 0;
-
-
-		if (in_read_pos == in_write_pos)
-			break;
-
-		sample = ((SAMPLE_TYPE *)in_buf)[in_read_pos];
-
-	#ifdef SCALER
-		buffer[i][1] += (sample << (sizeof(SAMPLE_TYPE) * 8 - BIT_RESOLUTION)) / (float)SCALER;
-	#else
-		buffer[i][1] += sample;
-	#endif
-
-		in_read_pos++;
-		if (in_read_pos >= IN_BUF_SIZE)
-			in_read_pos = 0;
+			in_read_pos++;
+			if (in_read_pos >= IN_BUF_SIZE)
+				in_read_pos = 0;
+		}
 	}
 }
 

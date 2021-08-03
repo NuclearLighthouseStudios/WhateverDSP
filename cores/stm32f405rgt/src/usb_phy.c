@@ -59,22 +59,39 @@ static int fifo_alloc(size_t size)
 
 static void fifo_read(uint8_t *buf, size_t size)
 {
-	while (size > 0)
+	if (buf == NULL)
 	{
-		uint32_t data = USB_OTG_FS_DFIFO(0);
+		int32_t count = (size + 3) / 4;
+		uint32_t data;
 
-		if (buf == NULL)
+		for (int i = 0; i < count; i++)
 		{
-			size = size < 4 ? 0 : size - 4;
-			continue;
+			data = USB_OTG_FS_DFIFO(0);
+			data = data;
+		}
+	}
+	else
+	{
+		uint32_t *wbuf = (uint32_t *)buf;
+
+		while (size >= 4)
+		{
+			*wbuf++ = USB_OTG_FS_DFIFO(0);
+			size -= 4;
 		}
 
-		for (int i = 0; i < 4; i++)
+		buf = (uint8_t *)wbuf;
+
+		if (size > 0)
 		{
-			*(buf++) = data & 0xFF;
-			data >>= 8;
-			if (--size <= 0)
-				break;
+			uint32_t data = USB_OTG_FS_DFIFO(0);
+
+			while (size > 0)
+			{
+				*(buf++) = data & 0xFF;
+				data >>= 8;
+				size--;
+			}
 		}
 	}
 }
