@@ -14,7 +14,7 @@ volatile unsigned long int __CCMRAM sys_ticks = 0;
 static volatile bool __CCMRAM *busy_flags[MAX_BUSY_FLAGS];
 
 #define MAX_SCHEDULED_CALLS 16
-static __CCMRAM sys_schedulable_func scheduled_calls[MAX_SCHEDULED_CALLS];
+static volatile sys_schedulable_func __CCMRAM scheduled_calls[MAX_SCHEDULED_CALLS];
 
 void SysTick_Handler(void)
 {
