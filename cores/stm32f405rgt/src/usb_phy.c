@@ -29,7 +29,7 @@ static usb_out_endpoint __CCMRAM *usb_out_eps;
 static int __CCMRAM num_eof_callbacks = 0;
 static usb_phy_eof_callback __CCMRAM eof_callbacks[MAX_EOF_CALLBACKS];
 
-static uint16_t __CCMRAM frame_num = 0;
+volatile uint16_t __CCMRAM usb_phy_frame_num = 0;
 
 static int __CCMRAM fifo_alloc_pos;
 static int __CCMRAM fifo_alloc_num;
@@ -38,6 +38,7 @@ static int __CCMRAM fifo_alloc_num;
 static int fifo_alloc(size_t size)
 {
 	size_t word_size = (size + 3) / 4;
+
 	if (fifo_alloc_num == 0)
 	{
 		MODIFY_REG(USB_OTG_FS->DIEPTXF0_HNPTXFSIZ, USB_OTG_TX0FD_Msk, word_size << USB_OTG_TX0FD_Pos);
@@ -102,7 +103,7 @@ void OTG_FS_IRQHandler(void)
 	{
 		SET_BIT(USB_OTG_FS->GINTSTS, USB_OTG_GINTSTS_EOPF);
 
-		frame_num = ((USB_OTG_FS_DEVICE->DSTS & USB_OTG_DSTS_FNSOF_Msk) >> USB_OTG_DSTS_FNSOF_Pos) + 1;
+		usb_phy_frame_num = ((USB_OTG_FS_DEVICE->DSTS & USB_OTG_DSTS_FNSOF_Msk) >> USB_OTG_DSTS_FNSOF_Pos) + 1;
 
 		for (int i = 0; i < num_eof_callbacks; i++)
 			sys_schedule(eof_callbacks[i]);
@@ -304,7 +305,7 @@ void usb_phy_transmit(usb_in_endpoint *ep)
 
 	if (ep->type == EP_TYPE_ISOCHRONOUS)
 	{
-		if (frame_num & 0b1)
+		if (usb_phy_frame_num & 0b1)
 			SET_BIT(USB_OTG_FS_INEP(ep->epnum)->DIEPCTL, USB_OTG_DIEPCTL_SODDFRM);
 		else
 			SET_BIT(USB_OTG_FS_INEP(ep->epnum)->DIEPCTL, USB_OTG_DIEPCTL_SD0PID_SEVNFRM);
@@ -372,7 +373,7 @@ void usb_phy_receive(usb_out_endpoint *ep)
 
 	if (ep->type == EP_TYPE_ISOCHRONOUS)
 	{
-		if (frame_num & 0b1)
+		if (usb_phy_frame_num & 0b1)
 			SET_BIT(USB_OTG_FS_OUTEP(ep->epnum)->DOEPCTL, USB_OTG_DOEPCTL_SODDFRM);
 		else
 			SET_BIT(USB_OTG_FS_OUTEP(ep->epnum)->DOEPCTL, USB_OTG_DOEPCTL_SD0PID_SEVNFRM);
