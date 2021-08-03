@@ -74,6 +74,7 @@ void audio_process(void)
 	{
 		adc_ready = false;
 		dac_ready = false;
+		audio_usb_in(in_buffers[in_buffer], BLOCK_SIZE);
 		wdsp_process(in_buffers[in_buffer], out_buffers[out_buffer], BLOCK_SIZE);
 		audio_usb_out(out_buffers[out_buffer], BLOCK_SIZE);
 	}
