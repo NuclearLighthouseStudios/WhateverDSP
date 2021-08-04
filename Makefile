@@ -75,4 +75,4 @@ config: $(CONFIG_DIR)/config.h $(CONFIG_DIR)/config.mk
 .PHONY: clean
 clean:
 	-rm -f $(OBJECTS) $(OBJECTS:%.o=%.d) $(OBJECTS:%.o=%.lst) $(TARGET).a $(CONFIG_DIR)/config.h $(CONFIG_DIR)/config.mk
-	-rmdir -p $(BUILD_DIR) $(CONFIG_DIR)
+	-rmdir $(CONFIG_DIR) $(BUILD_DIR)
