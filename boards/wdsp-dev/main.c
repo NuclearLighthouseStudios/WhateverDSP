@@ -27,7 +27,7 @@ int main(void)
 #if CONFIG_MODULES_USB == true
 	usb_init();
 	usb_config_init();
-#if (CONFIG_MIDI_USB == true) || (CONFIG_AUDIO_USB == true)
+#if ((CONFIG_MODULES_MIDI == true) && (CONFIG_MIDI_USB == true)) || (CONFIG_AUDIO_USB == true)
 	usb_uac_init();
 #endif
 #endif
@@ -57,7 +57,7 @@ int main(void)
 	puts("Hey there! {^-^}~");
 	printf("libWDSP running at %dhz with block size %d\n", SAMPLE_RATE, BLOCK_SIZE);
 
-	wdsp_init(SAMPLE_RATE);
+	wdsp_init();
 
 	while (1)
 	{

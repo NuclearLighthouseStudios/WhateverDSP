@@ -3,8 +3,10 @@ include $(CONFIG_DIR)/config.mk
 # C sources
 C_SOURCES += \
 src/wdsp.c \
+src/audio.c \
 boards/$(BOARD)/main.c \
 cores/$(CORE)/src/system.c \
+cores/$(CORE)/src/audio_i2s.c \
 cores/$(CORE)/src/io.c\
 cores/$(CORE)/src/audio.c
 

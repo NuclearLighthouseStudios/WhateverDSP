@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include "cmsis_compiler.h"
 
+#include "audio.h"
+
 typedef struct __PACKED
 {
 	uint8_t bLength;
@@ -180,7 +182,7 @@ typedef struct __PACKED
 
 extern void audio_usb_init(void);
 
-extern void audio_usb_out(float buffer[][2], int len);
-extern void audio_usb_in(float buffer[][2], int len);
+extern void audio_usb_out(float buffer[NUM_STREAMS][BLOCK_SIZE]);
+extern void audio_usb_in(float buffer[NUM_STREAMS][BLOCK_SIZE]);
 
 #endif

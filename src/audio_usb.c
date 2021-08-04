@@ -157,24 +157,24 @@ static void out_stop(usb_out_endpoint *ep)
 	out_alt_setting = 0;
 }
 
-void audio_usb_out(float buffer[][2], int len)
+void audio_usb_out(float buffer[NUM_STREAMS][BLOCK_SIZE])
 {
 	if ((!in_active) || (in_alt_setting == 0))
 		return;
 
 	SAMPLE_TYPE sample;
 
-	for (int i = 0; i < len; i++)
+	for (int i = 0; i < BLOCK_SIZE; i++)
 	{
-		if (tx_buf_length >= FRAME_SIZE - 2 * SUBFRAME_SIZE)
+		if (tx_buf_length >= FRAME_SIZE - NUM_STREAMS * SUBFRAME_SIZE)
 			return;
 
-		for (int s = 0; s < 2; s++)
+		for (int s = 0; s < NUM_STREAMS; s++)
 		{
 		#ifdef SCALER
-			sample = (SAMPLE_TYPE)(buffer[i][s] * SCALER) >> (sizeof(SAMPLE_TYPE) * 8 - BIT_RESOLUTION);
+			sample = (SAMPLE_TYPE)(buffer[s][i] * SCALER) >> (sizeof(SAMPLE_TYPE) * 8 - BIT_RESOLUTION);
 		#else
-			sample = buffer[i][s];
+			sample = buffer[s][i];
 		#endif
 
 			*((SAMPLE_TYPE *)&tx_buf[tx_active_buf][tx_buf_length]) = sample;
@@ -183,17 +183,17 @@ void audio_usb_out(float buffer[][2], int len)
 	}
 }
 
-void audio_usb_in(float buffer[][2], int len)
+void audio_usb_in(float buffer[NUM_STREAMS][BLOCK_SIZE])
 {
 	if ((!out_active) || (out_alt_setting == 0))
 		return;
 
-	num_samples += len;
+	num_samples += BLOCK_SIZE;
 
 	if (!in_filled)
 		return;
 
-	for (int i = 0; i < len; i++)
+	for (int i = 0; i < BLOCK_SIZE; i++)
 	{
 		if (in_read_pos == in_write_pos)
 		{
@@ -201,17 +201,14 @@ void audio_usb_in(float buffer[][2], int len)
 			break;
 		}
 
-	#ifdef SCALER
-		buffer[i][0] += (in_buf[0][in_read_pos] << (sizeof(SAMPLE_TYPE) * 8 - BIT_RESOLUTION)) / (float)SCALER;
-	#else
-		buffer[i][0] += in_buf[0][in_read_pos];
-	#endif
-
-	#ifdef SCALER
-		buffer[i][1] += (in_buf[1][in_read_pos] << (sizeof(SAMPLE_TYPE) * 8 - BIT_RESOLUTION)) / (float)SCALER;
-	#else
-		buffer[i][1] += in_buf[1][in_read_pos];
-	#endif
+		for (int s = 0; s < NUM_STREAMS; s++)
+		{
+		#ifdef SCALER
+			buffer[s][i] += (in_buf[s][in_read_pos] << (sizeof(SAMPLE_TYPE) * 8 - BIT_RESOLUTION)) / (float)SCALER;
+		#else
+			buffer[s][i] += in_buf[s][in_read_pos];
+		#endif
+		}
 
 		in_read_pos++;
 		if (in_read_pos >= IN_BUF_SIZE)
