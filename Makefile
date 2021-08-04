@@ -4,14 +4,6 @@ include buildvars.mk
 
 TARGET ?= $(LIB_NAME)
 
-ifeq ($(DEBUG), true)
-BUILD_DIR ?= build/debug
-else
-BUILD_DIR ?= build
-endif
-
-CONFIG_DIR = $(BUILD_DIR)/config
-
 # C sources
 C_SOURCES =  \
 src/wdsp.c
@@ -20,8 +12,8 @@ src/wdsp.c
 ASM_SOURCES =
 
 # C includes
-C_INCLUDES =  \
--I $(BUILD_DIR)/config \
+C_INCLUDES = \
+-I $(CONFIG_DIR)/ \
 -I includes \
 -I includes/arm \
 -I includes/cmsis \
