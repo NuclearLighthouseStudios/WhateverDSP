@@ -154,6 +154,9 @@ typedef struct __PACKED
 	uint16_t wMaxPacketSize;
 
 	uint8_t bInterval;
+
+	uint8_t bRefresh;
+	uint8_t bSynchAddress;
 } usb_endpoint_descriptor;
 
 #define USB_ENDPOINT_DESCRIPTOR_INIT_BULK(endpoint_address, max_packet_size)\

@@ -1,7 +1,11 @@
 #ifndef __USB_PHY_H
 #define __USB_PHY_H
 
+#include <stdint.h>
+
 #include "usb.h"
+
+volatile extern uint16_t usb_phy_frame_num;
 
 typedef void (*usb_phy_eof_callback)(void);
 

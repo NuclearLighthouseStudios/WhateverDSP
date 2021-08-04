@@ -145,8 +145,42 @@ typedef struct __PACKED
 }
 
 
+#define USB_ENDPOINT_DESCRIPTOR_INIT_AUDIO(endpoint_address, sync_type, usage_type, sync_address, max_packet_size)\
+(usb_endpoint_descriptor){\
+	.bLength = 9,\
+	.bDescriptorType = 0x05,\
+\
+	.bEndpointAddress = endpoint_address,\
+	.bmAttributes.type = EP_TYPE_ISOCHRONOUS,\
+	.bmAttributes.sync = sync_type,\
+	.bmAttributes.usage = usage_type,\
+	.bInterval = 1,\
+	.wMaxPacketSize = max_packet_size,\
+\
+	.bRefresh = 0,\
+	.bSynchAddress = sync_address\
+}
+
+#define USB_ENDPOINT_DESCRIPTOR_INIT_SYNCH(endpoint_address, sync_type, usage_type, refresh, max_packet_size)\
+(usb_endpoint_descriptor){\
+	.bLength = 9,\
+	.bDescriptorType = 0x05,\
+\
+	.bEndpointAddress = endpoint_address,\
+	.bmAttributes.type = EP_TYPE_ISOCHRONOUS,\
+	.bmAttributes.sync = sync_type,\
+	.bmAttributes.usage = usage_type,\
+	.bInterval = 1,\
+	.wMaxPacketSize = max_packet_size,\
+\
+	.bRefresh = refresh,\
+	.bSynchAddress = 0\
+}
+
+
 extern void audio_usb_init(void);
 
-extern void audio_usb_out(float in_buffer[][2], int len);
+extern void audio_usb_out(float buffer[][2], int len);
+extern void audio_usb_in(float buffer[][2], int len);
 
 #endif
