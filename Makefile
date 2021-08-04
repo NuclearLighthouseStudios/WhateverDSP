@@ -5,7 +5,7 @@ include buildvars.mk
 TARGET ?= $(LIB_NAME)
 
 # C sources
-C_SOURCES =  \
+C_SOURCES = \
 src/wdsp.c
 
 # ASM sources
@@ -18,6 +18,8 @@ C_INCLUDES = \
 -I includes/arm \
 -I includes/cmsis \
 -I includes/stm
+
+C_DEFS += -DLIB_BUILD
 
 include boards/$(BOARD)/board.mk
 include boards/$(BOARD)/build.mk

@@ -5,8 +5,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define MIDI_MAX_INTERFACES 4
-
 typedef struct
 {
 	uint8_t note;
@@ -102,6 +100,8 @@ typedef struct
 } midi_message;
 
 
+#ifdef LIB_BUILD
+
 typedef void (*midi_transmit_func)(midi_message *message);
 typedef bool (*midi_can_transmit_func)(void);
 
@@ -121,9 +121,11 @@ extern int midi_add_interface(midi_transmit_func transmit, midi_can_transmit_fun
 extern void midi_receive(midi_message *message);
 extern void midi_transmit(void);
 
+extern size_t midi_get_message_length(midi_command command);
+
+#endif
+
 extern midi_message *midi_get_message(void);
 extern void midi_send_message(midi_message *message);
-
-extern size_t midi_get_message_length(midi_command command);
 
 #endif
