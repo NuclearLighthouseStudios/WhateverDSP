@@ -67,7 +67,7 @@ static usb_endpoint_descriptor __CCMRAM synch_endpoint_desc;
 #endif
 
 #if OUTPUT_ENABLED == true
-static uint8_t __CCMRAM tx_buf[2][FRAME_SIZE];
+static uint8_t __CCMRAM tx_buf[2][FRAME_SIZE+4];
 static uint32_t __CCMRAM tx_active_buf = 0;
 static uint32_t __CCMRAM tx_buf_length = 0;
 #endif
@@ -189,7 +189,7 @@ void audio_usb_out(float buffer[NUM_STREAMS][BLOCK_SIZE])
 
 	for (int i = 0; i < BLOCK_SIZE; i++)
 	{
-		if (tx_buf_length >= FRAME_SIZE - NUM_STREAMS * SUBFRAME_SIZE)
+		if (tx_buf_length + NUM_STREAMS * SUBFRAME_SIZE > FRAME_SIZE)
 			return;
 
 		for (int s = 0; s < NUM_STREAMS; s++)
