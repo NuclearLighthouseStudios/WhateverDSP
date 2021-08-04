@@ -28,22 +28,22 @@ void audio_process(void)
 		audio_phy_adc_ready = false;
 		audio_phy_dac_ready = false;
 
-	#ifdef USB_AUDIO_ENABLED
-	#if USB_AUDIO_IN_POS == pre
+	#if USB_AUDIO_ENABLED == true
+	#if (USB_AUDIO_IN_POS == pre) && (USB_INPUT_ENABLED == true)
 		audio_usb_in(audio_in_buffers[audio_in_buffer]);
 	#endif
-	#if USB_AUDIO_OUT_POS == pre
+	#if (USB_AUDIO_OUT_POS == pre) && (USB_OUTPUT_ENABLED == true)
 		audio_usb_out(audio_in_buffers[audio_in_buffer]);
 	#endif
 	#endif
 
 		wdsp_process(audio_in_buffers[audio_in_buffer], audio_out_buffers[audio_out_buffer]);
 
-	#ifdef USB_AUDIO_ENABLED
-	#if USB_AUDIO_IN_POS == post
+	#if USB_AUDIO_ENABLED == true
+	#if (USB_AUDIO_IN_POS == post) && (USB_INPUT_ENABLED == true)
 		audio_usb_in(audio_out_buffers[audio_out_buffer]);
 	#endif
-	#if USB_AUDIO_OUT_POS == post
+	#if (USB_AUDIO_OUT_POS == post) && (USB_OUTPUT_ENABLED == true)
 		audio_usb_out(audio_out_buffers[audio_out_buffer]);
 	#endif
 	#endif

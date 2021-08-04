@@ -17,25 +17,32 @@
 
 #include "conf/audio_usb.h"
 
-
+#if OUTPUT_ENABLED == true
 static usb_in_endpoint __CCMRAM *audio_in_ep;
+
+static uint8_t __CCMRAM in_alt_setting = 0;
+static bool __CCMRAM in_active = false;
+#endif
+
+#if INPUT_ENABLED == true
 static usb_out_endpoint __CCMRAM *audio_out_ep;
 static usb_in_endpoint __CCMRAM *synch_in_ep;
 
-static uint8_t __CCMRAM in_alt_setting = 0;
 static uint8_t __CCMRAM out_alt_setting = 0;
-
-static bool __CCMRAM in_active = false;
 static bool __CCMRAM out_active = false;
+#endif
 
-
+#if OUTPUT_ENABLED == true
 static usb_audio_input_terminal_descriptor __CCMRAM audio_input_terminal = USB_AUDIO_INPUT_TERMINAL_DESCRIPTOR_INIT(1, 0x0201, 2, 0x0003);
 static usb_audio_output_terminal_descriptor __CCMRAM usb_output_terminal = USB_AUDIO_OUTPUT_TERMINAL_DESCRIPTOR_INIT(2, 0x0101, 1);
+#endif
 
+#if INPUT_ENABLED == true
 static usb_audio_input_terminal_descriptor __CCMRAM usb_input_terminal = USB_AUDIO_INPUT_TERMINAL_DESCRIPTOR_INIT(3, 0x0101, 4, 0x0003);
 static usb_audio_output_terminal_descriptor __CCMRAM audio_output_terminal = USB_AUDIO_OUTPUT_TERMINAL_DESCRIPTOR_INIT(4, 0x0301, 1);
+#endif
 
-
+#if OUTPUT_ENABLED == true
 static usb_interface_descriptor __CCMRAM in_interface_desc_zb = USB_INTERFACE_DESCRIPTOR_INIT(0, 0x01, 0x02, 0x00);
 static usb_interface_descriptor __CCMRAM in_interface_desc = USB_INTERFACE_DESCRIPTOR_INIT_ALT(1, 1, 0x01, 0x02, 0x00);
 
@@ -44,8 +51,9 @@ static usb_audio_format_i_descriptor __CCMRAM in_audio_format_desc = USB_AUDIO_F
 
 static usb_endpoint_descriptor __CCMRAM in_endpoint_desc;
 static usb_audio_endpoint_descriptor __CCMRAM in_audio_endpoint_desc = USB_AUDIO_ENDPOINT_DESCRIPTOR_INIT();
+#endif
 
-
+#if INPUT_ENABLED == true
 static usb_interface_descriptor __CCMRAM out_interface_desc_zb = USB_INTERFACE_DESCRIPTOR_INIT(0, 0x01, 0x02, 0x00);
 static usb_interface_descriptor __CCMRAM out_interface_desc = USB_INTERFACE_DESCRIPTOR_INIT_ALT(1, 2, 0x01, 0x02, 0x00);
 
@@ -56,12 +64,15 @@ static usb_endpoint_descriptor __CCMRAM out_endpoint_desc;
 static usb_audio_endpoint_descriptor __CCMRAM out_audio_endpoint_desc = USB_AUDIO_ENDPOINT_DESCRIPTOR_INIT();
 
 static usb_endpoint_descriptor __CCMRAM synch_endpoint_desc;
+#endif
 
-
+#if OUTPUT_ENABLED == true
 static uint8_t __CCMRAM tx_buf[2][FRAME_SIZE];
 static uint32_t __CCMRAM tx_active_buf = 0;
 static uint32_t __CCMRAM tx_buf_length = 0;
+#endif
 
+#if INPUT_ENABLED == true
 static uint8_t __CCMRAM rx_buf[FRAME_SIZE];
 static SAMPLE_TYPE __CCMRAM in_buf[2][IN_BUF_SIZE];
 static uint32_t __CCMRAM in_read_pos = 0;
@@ -73,10 +84,12 @@ static uint32_t __CCMRAM num_frames = 0;
 static uint32_t __CCMRAM in_buf_fill = 0;
 
 static uint32_t __CCMRAM sync_sample_rate;
+#endif
 
 
 static void eof_callback(void)
 {
+#if INPUT_ENABLED == true
 	if ((out_active) && (out_alt_setting != 0))
 	{
 		num_frames++;
@@ -94,7 +107,9 @@ static void eof_callback(void)
 		usb_transmit((uint8_t *)&sync_sample_rate, 3, synch_in_ep);
 		usb_receive((uint8_t *)(rx_buf), FRAME_SIZE, audio_out_ep);
 	}
+#endif
 
+#if OUTPUT_ENABLED == true
 	if ((in_active) && (in_alt_setting != 0))
 	{
 		usb_transmit((uint8_t *)(tx_buf[tx_active_buf]), tx_buf_length, audio_in_ep);
@@ -102,8 +117,10 @@ static void eof_callback(void)
 		tx_buf_length = 0;
 		tx_active_buf = !tx_active_buf;
 	}
+#endif
 }
 
+#if INPUT_ENABLED == true
 static void rx_callback(usb_out_endpoint *ep, uint8_t *buf, size_t count)
 {
 	int32_t fill = in_write_pos - in_read_pos;
@@ -134,7 +151,9 @@ static void rx_callback(usb_out_endpoint *ep, uint8_t *buf, size_t count)
 		}
 	}
 }
+#endif
 
+#if OUTPUT_ENABLED == true
 static void in_start(usb_in_endpoint *ep)
 {
 	in_active = true;
@@ -145,7 +164,9 @@ static void in_stop(usb_in_endpoint *ep)
 	in_active = false;
 	in_alt_setting = 0;
 }
+#endif
 
+#if INPUT_ENABLED == true
 static void out_start(usb_out_endpoint *ep)
 {
 	out_active = true;
@@ -156,9 +177,11 @@ static void out_stop(usb_out_endpoint *ep)
 	out_active = false;
 	out_alt_setting = 0;
 }
+#endif
 
 void audio_usb_out(float buffer[NUM_STREAMS][BLOCK_SIZE])
 {
+#if OUTPUT_ENABLED == true
 	if ((!in_active) || (in_alt_setting == 0))
 		return;
 
@@ -181,10 +204,12 @@ void audio_usb_out(float buffer[NUM_STREAMS][BLOCK_SIZE])
 			tx_buf_length += SUBFRAME_SIZE;
 		}
 	}
+#endif
 }
 
 void audio_usb_in(float buffer[NUM_STREAMS][BLOCK_SIZE])
 {
+#if INPUT_ENABLED == true
 	if ((!out_active) || (out_alt_setting == 0))
 		return;
 
@@ -214,8 +239,10 @@ void audio_usb_in(float buffer[NUM_STREAMS][BLOCK_SIZE])
 		if (in_read_pos >= IN_BUF_SIZE)
 			in_read_pos = 0;
 	}
+#endif
 }
 
+#if OUTPUT_ENABLED == true
 static bool handle_in_setup(usb_setup_packet *packet, usb_in_endpoint *in_ep, usb_out_endpoint *out_ep)
 {
 	switch (packet->bRequest)
@@ -248,7 +275,9 @@ static bool handle_in_setup(usb_setup_packet *packet, usb_in_endpoint *in_ep, us
 
 	return true;
 }
+#endif
 
+#if INPUT_ENABLED == true
 static bool handle_out_setup(usb_setup_packet *packet, usb_in_endpoint *in_ep, usb_out_endpoint *out_ep)
 {
 	switch (packet->bRequest)
@@ -291,30 +320,42 @@ static bool handle_out_setup(usb_setup_packet *packet, usb_in_endpoint *in_ep, u
 
 	return true;
 }
+#endif
 
 void audio_usb_init(void)
 {
+#if OUTPUT_ENABLED == true
 	audio_in_ep = usb_add_in_ep(EP_TYPE_ISOCHRONOUS, FRAME_SIZE, FRAME_SIZE, &in_start, &in_stop);
+#endif
+
+#if INPUT_ENABLED == true
 	audio_out_ep = usb_add_out_ep(EP_TYPE_ISOCHRONOUS, FRAME_SIZE, &out_start, &out_stop);
 	usb_set_rx_callback(audio_out_ep, &rx_callback);
 
 	synch_in_ep = usb_add_in_ep(EP_TYPE_ISOCHRONOUS, 8, 8, NULL, NULL);
+#endif
 
+#if OUTPUT_ENABLED == true
 	usb_config_add_descriptor((usb_descriptor *)&audio_input_terminal);
 	usb_uac_add_terminal((usb_descriptor *)&audio_input_terminal);
 
 	usb_config_add_descriptor((usb_descriptor *)&usb_output_terminal);
 	usb_uac_add_terminal((usb_descriptor *)&usb_output_terminal);
+#endif
 
+#if INPUT_ENABLED == true
 	usb_config_add_descriptor((usb_descriptor *)&usb_input_terminal);
 	usb_uac_add_terminal((usb_descriptor *)&usb_input_terminal);
 
 	usb_config_add_descriptor((usb_descriptor *)&audio_output_terminal);
 	usb_uac_add_terminal((usb_descriptor *)&audio_output_terminal);
+#endif
 
-
+#if (OUTPUT_ENABLED == true) || (INPUT_ENABLED == true)
 	int interface_string = usb_config_add_string(INTERFACE_NAME);
+#endif
 
+#if OUTPUT_ENABLED == true
 	in_interface_desc_zb.iInterface = interface_string;
 	usb_config_add_interface(&in_interface_desc_zb, &handle_in_setup);
 
@@ -328,8 +369,9 @@ void audio_usb_init(void)
 	in_endpoint_desc = USB_ENDPOINT_DESCRIPTOR_INIT_AUDIO(audio_in_ep->epnum | 0x80, 0b01, 0b00, 0, audio_in_ep->max_packet_size);
 	usb_config_add_descriptor((usb_descriptor *)&in_endpoint_desc);
 	usb_config_add_descriptor((usb_descriptor *)&in_audio_endpoint_desc);
+#endif
 
-
+#if INPUT_ENABLED == true
 	out_interface_desc_zb.iInterface = interface_string;
 	usb_config_add_interface(&out_interface_desc_zb, &handle_out_setup);
 
@@ -346,6 +388,7 @@ void audio_usb_init(void)
 
 	synch_endpoint_desc = USB_ENDPOINT_DESCRIPTOR_INIT_SYNCH(synch_in_ep->epnum | 0x80, 0b00, 0b01, SYNC_INTERVAL, synch_in_ep->max_packet_size);
 	usb_config_add_descriptor((usb_descriptor *)&synch_endpoint_desc);
+#endif
 
 	usb_phy_add_eof_callback(&eof_callback);
 }
