@@ -8,6 +8,7 @@
 
 #include "system.h"
 #include "audio.h"
+#include "audio_phy.h"
 
 #include "conf/audio_i2s.h"
 
