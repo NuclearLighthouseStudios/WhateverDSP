@@ -33,7 +33,7 @@ void audio_process(void)
 		audio_usb_in(audio_in_buffers[audio_in_buffer]);
 	#endif
 	#if USB_AUDIO_OUT_POS == pre
-		audio_usb_out(audio_out_buffers[audio_in_buffer]);
+		audio_usb_out(audio_in_buffers[audio_in_buffer]);
 	#endif
 	#endif
 
@@ -41,7 +41,7 @@ void audio_process(void)
 
 	#ifdef USB_AUDIO_ENABLED
 	#if USB_AUDIO_IN_POS == post
-		audio_usb_in(audio_in_buffers[audio_out_buffer]);
+		audio_usb_in(audio_out_buffers[audio_out_buffer]);
 	#endif
 	#if USB_AUDIO_OUT_POS == post
 		audio_usb_out(audio_out_buffers[audio_out_buffer]);
