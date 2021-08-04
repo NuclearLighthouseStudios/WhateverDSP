@@ -10,10 +10,10 @@
 #include "usb_phy.h"
 #include "usb.h"
 
-#include "conf/usb_phy.h"
+#include "conf/usb.h"
 
-static usb_in_endpoint __CCMRAM in_eps[USB_PHY_NUM_EPS];
-static usb_out_endpoint __CCMRAM out_eps[USB_PHY_NUM_EPS];
+static usb_in_endpoint __CCMRAM in_eps[NUM_ENDPOINTS];
+static usb_out_endpoint __CCMRAM out_eps[NUM_ENDPOINTS];
 
 
 void usb_transmit(uint8_t *buf, size_t size, usb_in_endpoint *ep)
@@ -57,7 +57,7 @@ usb_in_endpoint *usb_add_in_ep(usb_ep_type type, size_t max_packet_size, size_t 
 	{
 		epnum++;
 
-		if (epnum >= USB_PHY_NUM_EPS)
+		if (epnum >= NUM_ENDPOINTS)
 			return NULL;
 	}
 
@@ -94,7 +94,7 @@ usb_out_endpoint *usb_add_out_ep(usb_ep_type type, size_t max_packet_size, usb_o
 	{
 		epnum++;
 
-		if (epnum >= USB_PHY_NUM_EPS)
+		if (epnum >= NUM_ENDPOINTS)
 			return NULL;
 	}
 
@@ -144,7 +144,7 @@ void usb_reset(void)
 {
 	usb_phy_reset();
 
-	for (int i = 0; i < USB_PHY_NUM_EPS; i++)
+	for (int i = 0; i < NUM_ENDPOINTS; i++)
 	{
 		if ((out_eps[i].active) && (out_eps[i].stop_callback))
 			out_eps[i].stop_callback(&(out_eps[i]));
@@ -153,7 +153,7 @@ void usb_reset(void)
 			in_eps[i].stop_callback(&(in_eps[i]));
 	}
 
-	for (int i = 0; i < USB_PHY_NUM_EPS; i++)
+	for (int i = 0; i < NUM_ENDPOINTS; i++)
 	{
 		in_eps[i].tx_ready = false;
 
@@ -173,7 +173,7 @@ void usb_reset(void)
 
 void usb_configure(void)
 {
-	for (int i = 1; i < USB_PHY_NUM_EPS; i++)
+	for (int i = 1; i < NUM_ENDPOINTS; i++)
 	{
 		if (in_eps[i].active)
 			usb_phy_in_ep_init(&(in_eps[i]));
@@ -181,7 +181,7 @@ void usb_configure(void)
 			usb_phy_out_ep_init(&(out_eps[i]));
 	}
 
-	for (int i = 1; i < USB_PHY_NUM_EPS; i++)
+	for (int i = 1; i < NUM_ENDPOINTS; i++)
 	{
 		if ((out_eps[i].active) && (out_eps[i].start_callback))
 			out_eps[i].start_callback(&(out_eps[i]));
@@ -193,7 +193,7 @@ void usb_configure(void)
 
 void usb_process(void)
 {
-	for (int i = 0; i < USB_PHY_NUM_EPS; i++)
+	for (int i = 0; i < NUM_ENDPOINTS; i++)
 	{
 		if (out_eps[i].active)
 		{
@@ -225,7 +225,7 @@ void usb_init(void)
 {
 	usb_phy_init(in_eps, out_eps);
 
-	for (int i = 0; i < USB_PHY_NUM_EPS; i++)
+	for (int i = 0; i < NUM_ENDPOINTS; i++)
 	{
 		in_eps[i].active = false;
 		out_eps[i].active = false;

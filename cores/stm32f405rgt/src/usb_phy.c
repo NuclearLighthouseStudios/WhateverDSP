@@ -21,7 +21,7 @@
 #define USB_OTG_FS_OUTEP(i) ((USB_OTG_OUTEndpointTypeDef *)(USB_OTG_FS_PERIPH_BASE + USB_OTG_OUT_ENDPOINT_BASE + ((i)*USB_OTG_EP_REG_SIZE)))
 #define USB_OTG_FS_DFIFO(i) *(__IO uint32_t *)(USB_OTG_FS_PERIPH_BASE + USB_OTG_FIFO_BASE + ((i)*USB_OTG_FIFO_SIZE))
 
-
+#define NUM_ENDPOINTS 4
 static usb_in_endpoint __CCMRAM *usb_in_eps;
 static usb_out_endpoint __CCMRAM *usb_out_eps;
 
@@ -492,7 +492,7 @@ void usb_phy_reset(void)
 	MODIFY_REG(USB_OTG_FS_DEVICE->DCFG, USB_OTG_DCFG_DAD_Msk, 0x00 << USB_OTG_DCFG_DAD_Pos);
 
 	// Reset all endpoints
-	for (int i = 0; i < USB_PHY_NUM_EPS; i++)
+	for (int i = 0; i < NUM_ENDPOINTS; i++)
 	{
 		USB_OTG_FS_INEP(i)->DIEPCTL = 0x00;
 		USB_OTG_FS_OUTEP(i)->DOEPCTL = 0x00;
