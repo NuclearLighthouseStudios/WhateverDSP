@@ -17,9 +17,6 @@
 
 #include "conf/audio_usb.h"
 
-#if BLOCK_SIZE > 16
-#warning For USB audio to perform reliably BLOCK_SIZE should to be smaller than 16
-#endif
 
 #if OUTPUT_ENABLED == true
 static usb_in_endpoint __CCMRAM * audio_in_ep;
