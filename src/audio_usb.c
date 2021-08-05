@@ -67,7 +67,7 @@ static usb_endpoint_descriptor __CCMRAM synch_endpoint_desc;
 #endif
 
 #if OUTPUT_ENABLED == true
-static uint8_t __CCMRAM tx_buf[2][FRAME_SIZE+4];
+static uint8_t __CCMRAM tx_buf[2][FRAME_SIZE + 4];
 static uint32_t __CCMRAM tx_active_buf = 0;
 static uint32_t __CCMRAM tx_buf_length = 0;
 #endif
@@ -86,6 +86,8 @@ static uint32_t __CCMRAM in_buf_fill = 0;
 static uint32_t __CCMRAM sync_sample_rate;
 #endif
 
+static float __CCMRAM last_buf_fill;
+static float __CCMRAM rate_ratio;
 
 static void eof_callback(void)
 {
@@ -98,6 +100,8 @@ static void eof_callback(void)
 		{
 			float servo = (((float)in_buf_fill / (float)num_frames) - (float)IN_BUF_TARGET) * SYNC_SERVO_AMOUNT;
 			sync_sample_rate = ((float)num_samples / (float)num_frames - servo) * (float)(1 << 14);
+
+			rate_ratio = (((float)num_samples / (float)num_frames - servo) - 45.0f) / 10.0f;
 
 			num_frames = 0;
 			num_samples = 0;
@@ -131,6 +135,7 @@ static void rx_callback(usb_out_endpoint *ep, uint8_t *buf, size_t count)
 		in_filled = true;
 
 	in_buf_fill += fill;
+	last_buf_fill = (float)fill / (float)IN_BUF_SIZE;
 
 	for (int i = 0; i < count; i += SUBFRAME_SIZE * 2)
 	{
@@ -192,17 +197,24 @@ void audio_usb_out(float buffer[NUM_STREAMS][BLOCK_SIZE])
 		if (tx_buf_length + NUM_STREAMS * SUBFRAME_SIZE > FRAME_SIZE)
 			return;
 
-		for (int s = 0; s < NUM_STREAMS; s++)
-		{
-		#ifdef SCALER
-			sample = (SAMPLE_TYPE)(buffer[s][i] * SCALER) >> (sizeof(SAMPLE_TYPE) * 8 - BIT_RESOLUTION);
-		#else
-			sample = buffer[s][i];
-		#endif
 
-			*((SAMPLE_TYPE *)&tx_buf[tx_active_buf][tx_buf_length]) = sample;
-			tx_buf_length += SUBFRAME_SIZE;
-		}
+	#ifdef SCALER
+		sample = (SAMPLE_TYPE)(last_buf_fill * SCALER) >> (sizeof(SAMPLE_TYPE) * 8 - BIT_RESOLUTION);
+	#else
+		sample = last_buf_fill;
+	#endif
+
+		*((SAMPLE_TYPE *)&tx_buf[tx_active_buf][tx_buf_length]) = sample;
+		tx_buf_length += SUBFRAME_SIZE;
+
+	#ifdef SCALER
+		sample = (SAMPLE_TYPE)(rate_ratio * SCALER) >> (sizeof(SAMPLE_TYPE) * 8 - BIT_RESOLUTION);
+	#else
+		sample = rate_ratio;
+	#endif
+
+		*((SAMPLE_TYPE *)&tx_buf[tx_active_buf][tx_buf_length]) = sample;
+		tx_buf_length += SUBFRAME_SIZE;
 	}
 #endif
 }
