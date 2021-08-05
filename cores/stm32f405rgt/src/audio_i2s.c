@@ -12,15 +12,15 @@
 
 #include "conf/audio_i2s.h"
 
-static int32_t i2s_adc_buffer[2][BLOCK_SIZE * 2];
-static int32_t i2s_dac_buffer[2][BLOCK_SIZE * 2];
+static int32_t i2s_adc_buffer[2][BUFFER_SIZE * 2];
+static int32_t i2s_dac_buffer[2][BUFFER_SIZE * 2];
 
 volatile bool __CCMRAM audio_phy_adc_ready = false;
 volatile bool __CCMRAM audio_phy_dac_ready = false;
 
 static inline void audio_transfer_in(int in_buf, int dma_buf)
 {
-	for (int i = 0; i < BLOCK_SIZE; i++)
+	for (int i = 0; i < BUFFER_SIZE; i++)
 	{
 		audio_in_buffers[in_buf][0][i] = (((i2s_adc_buffer[dma_buf][i << 1] >> 16) & 0xffff) | ((i2s_adc_buffer[dma_buf][i << 1] & 0xffff) << 16)) / (float)INT32_MAX;
 		audio_in_buffers[in_buf][1][i] = (((i2s_adc_buffer[dma_buf][(i << 1) + 1] >> 16) & 0xffff) | ((i2s_adc_buffer[dma_buf][(i << 1) + 1] & 0xffff) << 16)) / (float)INT32_MAX;
@@ -29,7 +29,7 @@ static inline void audio_transfer_in(int in_buf, int dma_buf)
 
 static inline void audio_transfer_out(int out_buf, int dma_buf)
 {
-	for (int i = 0; i < BLOCK_SIZE; i++)
+	for (int i = 0; i < BUFFER_SIZE; i++)
 	{
 		int32_t samp_l = audio_out_buffers[out_buf][0][i] * (float)INT32_MAX;
 		int32_t samp_r = audio_out_buffers[out_buf][1][i] * (float)INT32_MAX;
@@ -86,7 +86,7 @@ static void audio_init_I2S_out(void)
 	DMA1_Stream4->M0AR = (uint32_t)&i2s_dac_buffer[0];
 	DMA1_Stream4->M1AR = (uint32_t)&i2s_dac_buffer[1];
 	DMA1_Stream4->PAR = (uint32_t) & (SPI2->DR);
-	DMA1_Stream4->NDTR = (uint16_t)BLOCK_SIZE * 4;
+	DMA1_Stream4->NDTR = (uint16_t)BUFFER_SIZE * 4;
 
 	// Enable transfer complete interrupts
 	SET_BIT(DMA1_Stream4->CR, DMA_SxCR_TCIE);
@@ -150,7 +150,7 @@ static void audio_init_I2S_in(void)
 	DMA1_Stream0->M0AR = (uint32_t)&i2s_adc_buffer[0];
 	DMA1_Stream0->M1AR = (uint32_t)&i2s_adc_buffer[1];
 	DMA1_Stream0->PAR = (uint32_t) & (SPI3->DR);
-	DMA1_Stream0->NDTR = (uint16_t)BLOCK_SIZE * 4;
+	DMA1_Stream0->NDTR = (uint16_t)BUFFER_SIZE * 4;
 
 	// Enable transfer complete interrupts
 	SET_BIT(DMA1_Stream0->CR, DMA_SxCR_TCIE);
