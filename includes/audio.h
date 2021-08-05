@@ -3,8 +3,8 @@
 
 #include "conf/audio.h"
 
-extern float audio_in_buffers[2][NUM_STREAMS][BLOCK_SIZE];
-extern float audio_out_buffers[2][NUM_STREAMS][BLOCK_SIZE];
+extern float audio_in_buffers[2][NUM_STREAMS][BUFFER_SIZE];
+extern float audio_out_buffers[2][NUM_STREAMS][BUFFER_SIZE];
 
 extern int audio_in_buffer;
 extern int audio_out_buffer;
