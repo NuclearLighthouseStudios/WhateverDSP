@@ -15,7 +15,7 @@
 
 #include "conf/audio.h"
 
-#if BLOCK_SIZE % BUFFER_SIZE != 0
+#if BUFFER_SIZE % BLOCK_SIZE != 0
 #error BUFFER_SIZE must be a multiple of BLOCK_SIZE
 #endif
 
