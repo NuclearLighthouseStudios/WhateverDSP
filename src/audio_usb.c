@@ -194,7 +194,7 @@ static void out_stop(usb_out_endpoint *ep)
 }
 #endif
 
-void audio_usb_out(float buffer[NUM_STREAMS][BLOCK_SIZE])
+void audio_usb_out(float *buffer[BLOCK_SIZE])
 {
 #if OUTPUT_ENABLED == true
 	if ((!in_active) || (in_alt_setting == 0))
@@ -222,7 +222,7 @@ void audio_usb_out(float buffer[NUM_STREAMS][BLOCK_SIZE])
 #endif
 }
 
-void audio_usb_in(float buffer[NUM_STREAMS][BLOCK_SIZE])
+void audio_usb_in(float *buffer[BLOCK_SIZE])
 {
 #if INPUT_ENABLED == true
 	if ((!out_active) || (out_alt_setting == 0))
