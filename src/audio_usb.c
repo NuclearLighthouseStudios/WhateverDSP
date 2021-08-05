@@ -1,5 +1,5 @@
 #include <stdbool.h>
-#include <stdio.h>
+#include <string.h>
 #include <math.h>
 
 #include "config.h"
@@ -18,11 +18,11 @@
 #include "conf/audio_usb.h"
 
 #if BLOCK_SIZE > 16
-#warning For USB audio to perform well BLOCK_SIZE should to be smaller than 16
+#warning For USB audio to perform reliably BLOCK_SIZE should to be smaller than 16
 #endif
 
 #if OUTPUT_ENABLED == true
-static usb_in_endpoint __CCMRAM *audio_in_ep;
+static usb_in_endpoint __CCMRAM * audio_in_ep;
 
 static uint8_t __CCMRAM in_alt_setting = 0;
 static bool __CCMRAM in_active = false;
@@ -71,9 +71,9 @@ static usb_endpoint_descriptor __CCMRAM synch_endpoint_desc;
 #endif
 
 #if OUTPUT_ENABLED == true
-static uint8_t __CCMRAM tx_buf[2][FRAME_SIZE+4];
+static uint8_t __CCMRAM tx_buf[2][OUT_BUF_SIZE + 4];
 static uint32_t __CCMRAM tx_active_buf = 0;
-static uint32_t __CCMRAM tx_buf_length = 0;
+static size_t __CCMRAM tx_buf_length = 0;
 #endif
 
 #if INPUT_ENABLED == true
@@ -116,9 +116,20 @@ static void eof_callback(void)
 #if OUTPUT_ENABLED == true
 	if ((in_active) && (in_alt_setting != 0))
 	{
-		usb_transmit((uint8_t *)(tx_buf[tx_active_buf]), tx_buf_length, audio_in_ep);
+		size_t tx_size = tx_buf_length < FRAME_SIZE ? tx_buf_length : FRAME_SIZE;
 
-		tx_buf_length = 0;
+		usb_transmit(tx_buf[tx_active_buf], tx_size, audio_in_ep);
+
+		if (tx_size < tx_buf_length)
+		{
+			tx_buf_length -= tx_size;
+			memcpy(tx_buf[!tx_active_buf], tx_buf[tx_active_buf] + tx_size, tx_buf_length);
+		}
+		else
+		{
+			tx_buf_length = 0;
+		}
+
 		tx_active_buf = !tx_active_buf;
 	}
 #endif
@@ -193,7 +204,7 @@ void audio_usb_out(float buffer[NUM_STREAMS][BLOCK_SIZE])
 
 	for (int i = 0; i < BLOCK_SIZE; i++)
 	{
-		if (tx_buf_length + NUM_STREAMS * SUBFRAME_SIZE > FRAME_SIZE)
+		if (tx_buf_length + NUM_STREAMS * SUBFRAME_SIZE > OUT_BUF_SIZE)
 			return;
 
 		for (int s = 0; s < NUM_STREAMS; s++)

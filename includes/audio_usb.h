@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "cmsis_compiler.h"
 
-#include "audio.h"
+#include "conf/audio_usb.h"
 
 typedef struct __PACKED
 {
