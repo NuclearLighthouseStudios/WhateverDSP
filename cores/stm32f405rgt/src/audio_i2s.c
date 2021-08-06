@@ -12,8 +12,14 @@
 
 #include "conf/audio_i2s.h"
 
-static int32_t i2s_adc_buffer[2][BUFFER_SIZE * 2];
-static int32_t i2s_dac_buffer[2][BUFFER_SIZE * 2];
+#define ANALOG_CHANNELS 2
+
+#if NUM_CHANNELS < ANALOG_CHANNELS
+#error Number of audio channels needs to be at least 2!
+#endif
+
+static int32_t i2s_adc_buffer[2][BUFFER_SIZE * ANALOG_CHANNELS];
+static int32_t i2s_dac_buffer[2][BUFFER_SIZE * ANALOG_CHANNELS];
 
 volatile bool __CCMRAM audio_analog_adc_ready = false;
 volatile bool __CCMRAM audio_analog_dac_ready = false;

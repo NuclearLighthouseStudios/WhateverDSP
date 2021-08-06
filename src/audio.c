@@ -21,11 +21,11 @@
 
 #define NUM_BLOCKS (BUFFER_SIZE/BLOCK_SIZE)
 
-float __CCMRAM audio_in_buffers[2][NUM_STREAMS][BUFFER_SIZE];
-float __CCMRAM audio_out_buffers[2][NUM_STREAMS][BUFFER_SIZE];
+float __CCMRAM audio_in_buffers[2][NUM_CHANNELS][BUFFER_SIZE];
+float __CCMRAM audio_out_buffers[2][NUM_CHANNELS][BUFFER_SIZE];
 
-static float __CCMRAM *audio_in_blocks[NUM_BLOCKS][2][NUM_STREAMS];
-static float __CCMRAM *audio_out_blocks[NUM_BLOCKS][2][NUM_STREAMS];
+static float __CCMRAM *audio_in_blocks[NUM_BLOCKS][2][NUM_CHANNELS];
+static float __CCMRAM *audio_out_blocks[NUM_BLOCKS][2][NUM_CHANNELS];
 
 int __CCMRAM audio_in_buffer = 0;
 int __CCMRAM audio_out_buffer = 0;
@@ -77,13 +77,13 @@ void audio_init(void)
 {
 	for (int i = 0; i < NUM_BLOCKS; i++)
 	{
-		for (int s = 0; s < NUM_STREAMS; s++)
+		for (int c = 0; c < NUM_CHANNELS; c++)
 		{
-			audio_in_blocks[i][0][s] = audio_in_buffers[0][s] + i * BLOCK_SIZE;
-			audio_in_blocks[i][1][s] = audio_in_buffers[1][s] + i * BLOCK_SIZE;
+			audio_in_blocks[i][0][c] = audio_in_buffers[0][c] + i * BLOCK_SIZE;
+			audio_in_blocks[i][1][c] = audio_in_buffers[1][c] + i * BLOCK_SIZE;
 
-			audio_out_blocks[i][0][s] = audio_out_buffers[0][s] + i * BLOCK_SIZE;
-			audio_out_blocks[i][1][s] = audio_out_buffers[1][s] + i * BLOCK_SIZE;
+			audio_out_blocks[i][0][c] = audio_out_buffers[0][c] + i * BLOCK_SIZE;
+			audio_out_blocks[i][1][c] = audio_out_buffers[1][c] + i * BLOCK_SIZE;
 		}
 	}
 
