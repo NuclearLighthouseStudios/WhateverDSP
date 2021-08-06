@@ -24,12 +24,29 @@ static int32_t i2s_dac_buffer[2][BUFFER_SIZE * ANALOG_CHANNELS];
 volatile bool __CCMRAM audio_analog_adc_ready = false;
 volatile bool __CCMRAM audio_analog_dac_ready = false;
 
+
+__STATIC_FORCEINLINE float __VCVT_F32_S32(uint32_t value)
+{
+	float result;
+	__ASM volatile ("vcvt.f32.s32 %0, %1, #32" : "=t" (result) : "t" (value));
+	return result;
+}
+
+__STATIC_FORCEINLINE int32_t __VCVT_S32_F32(float value)
+{
+	int32_t result;
+	__ASM volatile ("vcvt.s32.f32 %0, %1, #32" : "=t" (result) : "t" (value));
+	return result;
+}
+
 static inline void audio_transfer_in(int in_buf, int dma_buf)
 {
 	for (int i = 0; i < BUFFER_SIZE; i++)
 	{
-		audio_in_buffers[in_buf][0][i] = (((i2s_adc_buffer[dma_buf][i << 1] >> 16) & 0xffff) | ((i2s_adc_buffer[dma_buf][i << 1] & 0xffff) << 16)) / (float)INT32_MAX;
-		audio_in_buffers[in_buf][1][i] = (((i2s_adc_buffer[dma_buf][(i << 1) + 1] >> 16) & 0xffff) | ((i2s_adc_buffer[dma_buf][(i << 1) + 1] & 0xffff) << 16)) / (float)INT32_MAX;
+		int j = i << 1;
+
+		audio_in_buffers[in_buf][0][i] = __VCVT_F32_S32(__ROR(i2s_adc_buffer[dma_buf][j], 16));
+		audio_in_buffers[in_buf][1][i] = __VCVT_F32_S32(__ROR(i2s_adc_buffer[dma_buf][j + 1], 16));
 	}
 }
 
@@ -37,10 +54,10 @@ static inline void audio_transfer_out(int out_buf, int dma_buf)
 {
 	for (int i = 0; i < BUFFER_SIZE; i++)
 	{
-		int32_t samp_l = audio_out_buffers[out_buf][0][i] * (float)INT32_MAX;
-		int32_t samp_r = audio_out_buffers[out_buf][1][i] * (float)INT32_MAX;
-		i2s_dac_buffer[dma_buf][i << 1] = ((samp_l >> 16) & 0xffff) | ((samp_l & 0xffff) << 16);
-		i2s_dac_buffer[dma_buf][(i << 1) + 1] = ((samp_r >> 16) & 0xffff) | ((samp_r & 0xffff) << 16);
+		int j = i << 1;
+
+		i2s_dac_buffer[dma_buf][j] = __ROR(__VCVT_S32_F32(audio_out_buffers[out_buf][0][i]), 16);
+		i2s_dac_buffer[dma_buf][j + 1] = __ROR(__VCVT_S32_F32(audio_out_buffers[out_buf][1][i]), 16);
 	}
 }
 
