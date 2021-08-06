@@ -18,13 +18,8 @@
 #include "conf/audio_usb.h"
 
 
-#if (NUM_USB_CHANNELS > 2) || (NUM_USB_CHANNELS < 1)
-#error USB audio only supports 1 or 2 channels!
-#endif
-
-
 #if OUTPUT_ENABLED == true
-static usb_in_endpoint __CCMRAM * audio_in_ep;
+static usb_in_endpoint __CCMRAM *audio_in_ep;
 
 static uint8_t __CCMRAM in_alt_setting = 0;
 static bool __CCMRAM in_active = false;
@@ -39,12 +34,12 @@ static bool __CCMRAM out_active = false;
 #endif
 
 #if OUTPUT_ENABLED == true
-static usb_audio_input_terminal_descriptor __CCMRAM audio_input_terminal = USB_AUDIO_INPUT_TERMINAL_DESCRIPTOR_INIT(1, 0x0201, 2, 0x0003);
+static usb_audio_input_terminal_descriptor __CCMRAM audio_input_terminal = USB_AUDIO_INPUT_TERMINAL_DESCRIPTOR_INIT(1, 0x0201, NUM_USB_CHANNELS, USB_CHANNEL_CONFIG);
 static usb_audio_output_terminal_descriptor __CCMRAM usb_output_terminal = USB_AUDIO_OUTPUT_TERMINAL_DESCRIPTOR_INIT(2, 0x0101, 1);
 #endif
 
 #if INPUT_ENABLED == true
-static usb_audio_input_terminal_descriptor __CCMRAM usb_input_terminal = USB_AUDIO_INPUT_TERMINAL_DESCRIPTOR_INIT(3, 0x0101, 4, 0x0003);
+static usb_audio_input_terminal_descriptor __CCMRAM usb_input_terminal = USB_AUDIO_INPUT_TERMINAL_DESCRIPTOR_INIT(3, 0x0101, NUM_USB_CHANNELS, USB_CHANNEL_CONFIG);
 static usb_audio_output_terminal_descriptor __CCMRAM audio_output_terminal = USB_AUDIO_OUTPUT_TERMINAL_DESCRIPTOR_INIT(4, 0x0301, 1);
 #endif
 
