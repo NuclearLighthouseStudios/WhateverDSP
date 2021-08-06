@@ -30,8 +30,14 @@
 						"encoding": "ascii"
 					},
 					{
-						"type": "graph",
 						"port": 1,
+						"type": "binary",
+						"label": "System Load",
+						"encoding": "float"
+					},
+					{
+						"port": 1,
+						"type": "graph",
 						"encoding": "float",
 						"graphId": "sysload",
 						"scale": 1
