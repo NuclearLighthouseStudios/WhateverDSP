@@ -90,6 +90,7 @@ FNR == 1{
 	value = parts[2]
 
 	gsub(/(^ *)|( *$)/, "", key)
+	gsub(/[#;].*$/, "", value)
 	gsub(/(^ *)|( *$)/, "", value)
 
 	if(( board != "" ) || (filenum > 1))

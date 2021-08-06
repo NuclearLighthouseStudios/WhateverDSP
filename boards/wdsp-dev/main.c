@@ -8,6 +8,7 @@
 #include "system.h"
 #include "io.h"
 #include "audio.h"
+#include "audio_usb.h"
 #include "usb.h"
 #include "usb_config.h"
 #include "usb_uac.h"
@@ -26,12 +27,16 @@ int main(void)
 #if CONFIG_MODULES_USB == true
 	usb_init();
 	usb_config_init();
-#if CONFIG_MIDI_USB == true
+#if ((CONFIG_MODULES_MIDI == true) && (CONFIG_MIDI_USB == true)) || (CONFIG_AUDIO_USB == true)
 	usb_uac_init();
 #endif
 #endif
 
 	audio_init();
+
+#if (CONFIG_MODULES_USB == true) && (CONFIG_AUDIO_USB == true)
+	audio_usb_init();
+#endif
 
 #if CONFIG_MODULES_MIDI == true
 	midi_init();
@@ -52,7 +57,7 @@ int main(void)
 	puts("Hey there! {^-^}~");
 	printf("libWDSP running at %dhz with block size %d\n", SAMPLE_RATE, BLOCK_SIZE);
 
-	wdsp_init(SAMPLE_RATE);
+	wdsp_init();
 
 	while (1)
 	{

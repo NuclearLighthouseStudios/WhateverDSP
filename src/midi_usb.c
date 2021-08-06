@@ -268,15 +268,14 @@ static bool midi_usb_can_transmit(void)
 
 void midi_usb_init(void)
 {
-	midi_in_ep = usb_add_in_ep(EP_TYPE_BULK, 8, 0x18, &in_start, &in_stop);
+	midi_in_ep = usb_add_in_ep(EP_TYPE_BULK, 8, 32, &in_start, &in_stop);
 	usb_set_tx_callback(midi_in_ep, &tx_callback);
 
 	midi_out_ep = usb_add_out_ep(EP_TYPE_BULK, 8, &out_start, NULL);
 	usb_set_rx_callback(midi_out_ep, &rx_callback);
 
 	midi_interface_desc.iInterface = usb_config_add_string(INTERACE_NAME);
-	usb_config_add_descriptor((usb_descriptor *)&midi_interface_desc);
-
+	usb_config_add_interface(&midi_interface_desc, NULL);
 	usb_uac_add_interface(&midi_interface_desc);
 
 	midi_header_desc.wTotalLength = sizeof(midi_header_desc) +

@@ -11,6 +11,14 @@ else
 export LIB_NAME ?= libwdsp
 endif
 
+ifeq ($(DEBUG), true)
+export BUILD_DIR ?= build/debug
+else
+export BUILD_DIR ?= build
+endif
+
+export CONFIG_DIR = $(BUILD_DIR)/config
+
 #######################################
 # binaries
 #######################################

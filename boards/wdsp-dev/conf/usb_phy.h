@@ -3,8 +3,7 @@
 
 #include "stm32f4xx.h"
 
-#define USB_PHY_NUM_EPS 4
-#define USB_PHY_RX_FIFO_SIZE 0x80
+#define USB_PHY_RX_FIFO_SIZE 560
 
 static inline void usb_phy_setup(void)
 {

@@ -5,6 +5,8 @@
 
 #include "cmsis_compiler.h"
 
+#include "usb.h"
+
 typedef struct __PACKED
 {
 	uint8_t bLength;
@@ -152,6 +154,9 @@ typedef struct __PACKED
 	uint16_t wMaxPacketSize;
 
 	uint8_t bInterval;
+
+	uint8_t bRefresh;
+	uint8_t bSynchAddress;
 } usb_endpoint_descriptor;
 
 #define USB_ENDPOINT_DESCRIPTOR_INIT_BULK(endpoint_address, max_packet_size)\
@@ -173,7 +178,7 @@ typedef struct __PACKED
 	.bmAttributes.type = EP_TYPE_ISOCHRONOUS,\
 	.bmAttributes.sync = sync_type,\
 	.bmAttributes.usage = usage_type,\
-	.bInterval = 4,\
+	.bInterval = 1,\
 	.wMaxPacketSize = max_packet_size,\
 }
 
@@ -188,7 +193,11 @@ typedef struct __PACKED
 } usb_string_descriptor;
 
 
+typedef bool (*usb_config_setup_handler)(usb_setup_packet *packet, usb_in_endpoint *in_ep, usb_out_endpoint *out_ep);
+
 extern void usb_config_init(void);
+
+extern void usb_config_add_interface(usb_interface_descriptor *desc, usb_config_setup_handler handler);
 extern void usb_config_add_descriptor(usb_descriptor *desc);
 extern int usb_config_add_string(char *str);
 

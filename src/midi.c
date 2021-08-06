@@ -16,6 +16,7 @@ static midi_message __CCMRAM midi_tx_queue[TXQ_LENGTH];
 static int __CCMRAM txq_read_pos = 0;
 static int __CCMRAM txq_write_pos = 0;
 
+#define MIDI_MAX_INTERFACES 4
 static midi_interface __CCMRAM interfaces[MIDI_MAX_INTERFACES];
 static int __CCMRAM num_interfaces = 0;
 

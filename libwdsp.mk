@@ -16,6 +16,7 @@ export USER_CONFIG ?= $(realpath $(CONFIG_FILE))
 include $(WDSP_PATH)/buildvars.mk
 
 C_INCLUDES = \
+-I $(WDSP_PATH)/$(CONFIG_DIR) \
 -I $(WDSP_PATH)/includes/libwdsp \
 -I $(WDSP_PATH)/boards/$(BOARD) \
 -I $(WDSP_PATH)/cores/$(CORE)

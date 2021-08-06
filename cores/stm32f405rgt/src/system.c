@@ -13,6 +13,9 @@ volatile unsigned long int __CCMRAM sys_ticks = 0;
 #define MAX_BUSY_FLAGS 16
 static volatile bool __CCMRAM *busy_flags[MAX_BUSY_FLAGS];
 
+#define MAX_SCHEDULED_CALLS 16
+static volatile sys_schedulable_func __CCMRAM scheduled_calls[MAX_SCHEDULED_CALLS];
+
 void SysTick_Handler(void)
 {
 	sys_ticks++;
@@ -102,7 +105,7 @@ void sys_delay(unsigned long int delay)
 	unsigned long int wait = delay;
 
 	while ((sys_ticks - tickstart) < wait)
-		__NOP();
+		__WFI();
 }
 
 char *sys_get_serial(void)
@@ -119,9 +122,23 @@ void sys_busy(volatile bool *flag)
 {
 	for (int i = 0; i < MAX_BUSY_FLAGS; i++)
 	{
-		if (!busy_flags[i])
+		if ((!busy_flags[i]) || (busy_flags[i] == flag))
 		{
 			busy_flags[i] = flag;
+			__SEV();
+			return;
+		}
+	}
+}
+
+void sys_schedule(sys_schedulable_func func)
+{
+	for (int i = 0; i < MAX_SCHEDULED_CALLS; i++)
+	{
+		if ((!scheduled_calls[i]) || (scheduled_calls[i] == func))
+		{
+			scheduled_calls[i] = func;
+			__SEV();
 			return;
 		}
 	}
@@ -129,6 +146,15 @@ void sys_busy(volatile bool *flag)
 
 void sys_idle(void)
 {
+	for (int i = 0; i < MAX_SCHEDULED_CALLS; i++)
+	{
+		if (scheduled_calls[i])
+		{
+			scheduled_calls[i]();
+			scheduled_calls[i] = NULL;
+		}
+	}
+
 	for (int i = 0; i < MAX_BUSY_FLAGS; i++)
 	{
 		if (busy_flags[i])
@@ -151,7 +177,7 @@ void sys_idle(void)
 	time_active += DWT->CYCCNT - sleep_end;
 	sleep_start = DWT->CYCCNT;
 
-	__WFI();
+	__WFE();
 
 	time_idle += DWT->CYCCNT - sleep_start;
 	sleep_end = DWT->CYCCNT;
@@ -168,7 +194,7 @@ void sys_idle(void)
 		time_active = 0;
 	}
 #else
-	__WFI();
+	__WFE();
 #endif
 }
 
@@ -187,8 +213,14 @@ void sys_init(void)
 	SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_DMA1EN);
 	SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_DMA2EN);
 
+	// Generate wakeup events on pending interrupts
+	SET_BIT(SCB->SCR, SCB_SCR_SEVONPEND_Msk);
+
 	for (int i = 0; i < MAX_BUSY_FLAGS; i++)
 		busy_flags[i] = NULL;
+
+	for (int i = 0; i < MAX_SCHEDULED_CALLS; i++)
+		scheduled_calls[i] = NULL;
 
 #ifdef DEBUG
 	// Enable trace and cycle counter for performance monitoring

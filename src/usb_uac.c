@@ -9,8 +9,8 @@
 
 #include "usb_uac.h"
 
-static usb_uac_header_descriptor __CCMRAM uac_header = USB_UAC_HEADER_INIT();
 static usb_interface_descriptor __CCMRAM uac_interface = USB_INTERFACE_DESCRIPTOR_INIT(0, 0x01, 0x01, 0x00);
+static usb_uac_header_descriptor __CCMRAM uac_header = USB_UAC_HEADER_INIT();
 
 void usb_uac_add_interface(usb_interface_descriptor *interface)
 {
@@ -30,6 +30,6 @@ void usb_uac_add_terminal(usb_descriptor *terminal)
 
 void usb_uac_init(void)
 {
-	usb_config_add_descriptor((usb_descriptor *)&uac_interface);
+	usb_config_add_interface(&uac_interface, NULL);
 	usb_config_add_descriptor((usb_descriptor *)&uac_header);
 }

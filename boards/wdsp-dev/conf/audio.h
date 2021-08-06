@@ -1,33 +1,30 @@
 #ifndef __CONF_AUDIO_H
 #define __CONF_AUDIO_H
 
+#define pre 0
+#define post 1
+
 #include "config.h"
 
+#define BUFFER_SIZE CONFIG_AUDIO_BUFFER_SIZE
 #define BLOCK_SIZE CONFIG_AUDIO_BLOCK_SIZE
 #define SAMPLE_RATE CONFIG_AUDIO_SAMPLE_RATE
+#define NUM_CHANNELS CONFIG_AUDIO_CHANNELS
 
-#if SAMPLE_RATE == 44100
-#define PLLN 79
-#define PLLR 2
-#define I2SDIV 3
-#define I2SODD 0b1
-#elif SAMPLE_RATE == 45000
-#define PLLN 144
-#define PLLR 5
-#define I2SDIV 2
-#define I2SODD 0b1
-#elif SAMPLE_RATE == 48000
-#define PLLN 86
-#define PLLR 2
-#define I2SDIV 3
-#define I2SODD 0b1
-#elif SAMPLE_RATE == 50000
-#define PLLN 64
-#define PLLR 2
-#define I2SDIV 2
-#define I2SODD 0b1
+#if (CONFIG_MODULES_USB == true) && (CONFIG_AUDIO_USB == true)
+
+#define USB_AUDIO_ENABLED true
+
+#define USB_AUDIO_IN_POS CONFIG_AUDIO_USB_IN_POS
+#define USB_AUDIO_OUT_POS CONFIG_AUDIO_USB_OUT_POS
+
+#define USB_INPUT_ENABLED CONFIG_AUDIO_USB_INPUT
+#define USB_OUTPUT_ENABLED CONFIG_AUDIO_USB_OUTPUT
+
 #else
-#error Unsupported Sample Rate!
+
+#define USB_AUDIO_ENABLED false
+
 #endif
 
 #endif
