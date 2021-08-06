@@ -8,15 +8,15 @@
 
 #include "system.h"
 #include "audio.h"
-#include "audio_phy.h"
+#include "audio_analog.h"
 
 #include "conf/audio_i2s.h"
 
 static int32_t i2s_adc_buffer[2][BUFFER_SIZE * 2];
 static int32_t i2s_dac_buffer[2][BUFFER_SIZE * 2];
 
-volatile bool __CCMRAM audio_phy_adc_ready = false;
-volatile bool __CCMRAM audio_phy_dac_ready = false;
+volatile bool __CCMRAM audio_analog_adc_ready = false;
+volatile bool __CCMRAM audio_analog_dac_ready = false;
 
 static inline void audio_transfer_in(int in_buf, int dma_buf)
 {
@@ -45,8 +45,8 @@ void DMA1_Stream0_IRQHandler(void)
 	audio_transfer_in(!audio_in_buffer, !READ_BIT(DMA1_Stream0->CR, DMA_SxCR_CT));
 	audio_in_buffer = !audio_in_buffer;
 
-	audio_phy_adc_ready = true;
-	sys_busy(&audio_phy_adc_ready);
+	audio_analog_adc_ready = true;
+	sys_busy(&audio_analog_adc_ready);
 }
 
 void DMA1_Stream4_IRQHandler(void)
@@ -56,8 +56,8 @@ void DMA1_Stream4_IRQHandler(void)
 	audio_transfer_out(!audio_out_buffer, !READ_BIT(DMA1_Stream4->CR, DMA_SxCR_CT));
 	audio_out_buffer = !audio_out_buffer;
 
-	audio_phy_dac_ready = true;
-	sys_busy(&audio_phy_dac_ready);
+	audio_analog_dac_ready = true;
+	sys_busy(&audio_analog_dac_ready);
 }
 
 static void audio_init_I2S_out(void)
@@ -188,7 +188,7 @@ static void audio_init_I2S_in(void)
 	SET_BIT(SPI3->CR2, SPI_CR2_RXDMAEN);
 }
 
-void audio_phy_init(void)
+void audio_analog_init(void)
 {
 	// Set up I2S clock
 	MODIFY_REG(RCC->PLLI2SCFGR, RCC_PLLI2SCFGR_PLLI2SR_Msk, PLLR << RCC_PLLI2SCFGR_PLLI2SR_Pos);

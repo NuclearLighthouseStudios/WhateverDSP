@@ -9,7 +9,7 @@
 #include "wdsp.h"
 
 #include "system.h"
-#include "audio_phy.h"
+#include "audio_analog.h"
 #include "audio_usb.h"
 #include "audio.h"
 
@@ -35,10 +35,10 @@ void audio_process(void)
 	static bool __CCMRAM processing = false;
 	static int __CCMRAM block_num;
 
-	if (audio_phy_adc_ready && audio_phy_dac_ready)
+	if (audio_analog_adc_ready && audio_analog_dac_ready)
 	{
-		audio_phy_adc_ready = false;
-		audio_phy_dac_ready = false;
+		audio_analog_adc_ready = false;
+		audio_analog_dac_ready = false;
 
 		processing = true;
 		sys_busy(&processing);
@@ -87,5 +87,5 @@ void audio_init(void)
 		}
 	}
 
-	audio_phy_init();
+	audio_analog_init();
 }
