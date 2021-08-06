@@ -154,18 +154,10 @@ static void rx_callback(usb_out_endpoint *ep, uint8_t *buf, size_t count)
 		in_buf[0][in_write_pos] = *((SAMPLE_TYPE *)&buf[i]);
 		in_buf[1][in_write_pos] = *((SAMPLE_TYPE *)&buf[i + SUBFRAME_SIZE]);
 
-		in_write_pos++;
-
-		if (in_write_pos >= IN_BUF_SIZE)
-			in_write_pos = 0;
+		in_write_pos = (in_write_pos + 1) % IN_BUF_SIZE;
 
 		if (in_write_pos == in_read_pos)
-		{
-			in_read_pos++;
-
-			if (in_read_pos >= IN_BUF_SIZE)
-				in_read_pos -= IN_BUF_SIZE;
-		}
+			in_read_pos = (in_read_pos + 1) % IN_BUF_SIZE;
 	}
 }
 #endif
@@ -252,9 +244,7 @@ void audio_usb_in(float *buffer[BLOCK_SIZE])
 		#endif
 		}
 
-		in_read_pos++;
-		if (in_read_pos >= IN_BUF_SIZE)
-			in_read_pos = 0;
+		in_read_pos = (in_read_pos + 1) % IN_BUF_SIZE;
 	}
 #endif
 }
