@@ -18,6 +18,11 @@
 #include "conf/audio_usb.h"
 
 
+#if (NUM_USB_CHANNELS > 2) || (NUM_USB_CHANNELS < 1)
+#error USB audio only supports 1 or 2 channels!
+#endif
+
+
 #if OUTPUT_ENABLED == true
 static usb_in_endpoint __CCMRAM * audio_in_ep;
 
@@ -48,7 +53,7 @@ static usb_interface_descriptor __CCMRAM in_interface_desc_zb = USB_INTERFACE_DE
 static usb_interface_descriptor __CCMRAM in_interface_desc = USB_INTERFACE_DESCRIPTOR_INIT_ALT(1, 1, 0x01, 0x02, 0x00);
 
 static usb_audio_interface_descriptor __CCMRAM in_audio_interface_desc = USB_AUDIO_INTERFACE_DESCRIPTOR_INIT(2, 0, FORMAT_TAG);
-static usb_audio_format_i_descriptor __CCMRAM in_audio_format_desc = USB_AUDIO_FORMAT_I_DESCRIPTOR_INIT(2, SUBFRAME_SIZE, BIT_RESOLUTION, SAMPLE_RATE);
+static usb_audio_format_i_descriptor __CCMRAM in_audio_format_desc = USB_AUDIO_FORMAT_I_DESCRIPTOR_INIT(NUM_USB_CHANNELS, SUBFRAME_SIZE, BIT_RESOLUTION, SAMPLE_RATE);
 
 static usb_endpoint_descriptor __CCMRAM in_endpoint_desc;
 static usb_audio_endpoint_descriptor __CCMRAM in_audio_endpoint_desc = USB_AUDIO_ENDPOINT_DESCRIPTOR_INIT();
@@ -59,7 +64,7 @@ static usb_interface_descriptor __CCMRAM out_interface_desc_zb = USB_INTERFACE_D
 static usb_interface_descriptor __CCMRAM out_interface_desc = USB_INTERFACE_DESCRIPTOR_INIT_ALT(1, 2, 0x01, 0x02, 0x00);
 
 static usb_audio_interface_descriptor __CCMRAM out_audio_interface_desc = USB_AUDIO_INTERFACE_DESCRIPTOR_INIT(3, 0, FORMAT_TAG);
-static usb_audio_format_i_descriptor __CCMRAM out_audio_format_desc = USB_AUDIO_FORMAT_I_DESCRIPTOR_INIT(2, SUBFRAME_SIZE, BIT_RESOLUTION, SAMPLE_RATE);
+static usb_audio_format_i_descriptor __CCMRAM out_audio_format_desc = USB_AUDIO_FORMAT_I_DESCRIPTOR_INIT(NUM_USB_CHANNELS, SUBFRAME_SIZE, BIT_RESOLUTION, SAMPLE_RATE);
 
 static usb_endpoint_descriptor __CCMRAM out_endpoint_desc;
 static usb_audio_endpoint_descriptor __CCMRAM out_audio_endpoint_desc = USB_AUDIO_ENDPOINT_DESCRIPTOR_INIT();
@@ -201,15 +206,15 @@ void audio_usb_out(float *buffer[BLOCK_SIZE])
 
 	for (int i = 0; i < BLOCK_SIZE; i++)
 	{
-		if (tx_buf_length + NUM_STREAMS * SUBFRAME_SIZE > OUT_BUF_SIZE)
+		if (tx_buf_length + NUM_USB_CHANNELS * SUBFRAME_SIZE > OUT_BUF_SIZE)
 			return;
 
-		for (int s = 0; s < NUM_STREAMS; s++)
+		for (int c = 0; c < NUM_USB_CHANNELS; c++)
 		{
 		#ifdef SCALER
-			sample = (SAMPLE_TYPE)(buffer[s][i] * SCALER) >> (sizeof(SAMPLE_TYPE) * 8 - BIT_RESOLUTION);
+			sample = (SAMPLE_TYPE)(buffer[c][i] * SCALER) >> (sizeof(SAMPLE_TYPE) * 8 - BIT_RESOLUTION);
 		#else
-			sample = buffer[s][i];
+			sample = buffer[c][i];
 		#endif
 
 			*((SAMPLE_TYPE *)&tx_buf[tx_active_buf][tx_buf_length]) = sample;
@@ -238,12 +243,12 @@ void audio_usb_in(float *buffer[BLOCK_SIZE])
 			break;
 		}
 
-		for (int s = 0; s < NUM_STREAMS; s++)
+		for (int c = 0; c < NUM_USB_CHANNELS; c++)
 		{
 		#ifdef SCALER
-			buffer[s][i] += (in_buf[s][in_read_pos] << (sizeof(SAMPLE_TYPE) * 8 - BIT_RESOLUTION)) / (float)SCALER;
+			buffer[c][i] += (in_buf[c][in_read_pos] << (sizeof(SAMPLE_TYPE) * 8 - BIT_RESOLUTION)) / (float)SCALER;
 		#else
-			buffer[s][i] += in_buf[s][in_read_pos];
+			buffer[c][i] += in_buf[c][in_read_pos];
 		#endif
 		}
 
