@@ -105,7 +105,7 @@ void sys_delay(unsigned long int delay)
 	unsigned long int wait = delay;
 
 	while ((sys_ticks - tickstart) < wait)
-		__NOP();
+		__WFI();
 }
 
 char *sys_get_serial(void)
