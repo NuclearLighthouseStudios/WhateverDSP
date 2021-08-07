@@ -75,7 +75,7 @@ Using a debugger like the STLinkV3-Mini you can now start and debug project dire
 
 ## Chat
 
-We have an IRC channel on [ibera.chat](https://libera.chat/) called `#wdsp`. 
+We have an IRC channel on [libera.chat](https://libera.chat/) called `#wdsp`. 
 
 ## License
 
