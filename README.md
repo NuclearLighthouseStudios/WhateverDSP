@@ -46,11 +46,12 @@ void wdsp_process(float *in_buffer[BLOCK_SIZE], float *out_buffer[BLOCK_SIZE])
 
 If you have `dfu-util` installed the resulting binary can be flashed onto the board by connecting it to your computer via USB, holding down the "Boot" button while powering it up and running `make dfu`.
 
-Want to learn more? Tough luck, there is no documentation yet. But I'm working on it…
+Want to learn more? Tough luck, there is no documentation yet. But I'm working on it…  
+In the meantime, why not check out the [examples repository](https://github.com/NuclearLighthouseStudios/WhateverDSP-Examples).
 
 ## Setting up VSCode
 
-Running `make vscode` sets up a workspace with all required setting to get you started with development and debugging in VSCode. It relies on the C/C+++ and Cortex-Debug extensions as well as OpenOCD and GDB to talk to the board.
+Running `make vscode` in your project directory sets up a workspace with all required setting to get you started with development and debugging in VSCode. It relies on the C/C+++ and Cortex-Debug extensions as well as OpenOCD and GDB to talk to the board.
 
 Using a debugger like the STLinkV3-Mini you can now start and debug project directly on the hardware just by hitting F5.
 
