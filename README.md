@@ -2,7 +2,9 @@
 
 ¯\\\_(ツ)\_/¯ *It's just like, whatever!*
 
-WhateverDSP ist an open C/C++ framework for high quality audio effects on embedded devices. It's still in pretty early development and right now only targets the accompanying WhateverDSP Development board and it's STM32F405 processor.
+![image](https://user-images.githubusercontent.com/55932282/128610385-a0652180-9c79-4f24-bbf6-792533ffc454.png)
+
+WhateverDSP is an open C/C++ framework for high quality audio effects on embedded devices. It's still in pretty early development and right now only targets the accompanying WhateverDSP Development board and it's STM32F405 processor.
 
 It supports low latency (<1ms) 32bit float audioprocessing , analog and digital GPIO, MIDI via both the classic serial interface and USB in addition to full duplex class compliant USB audio at up to 48khz in both 24 bit and 32 bit float sample formats.
 
