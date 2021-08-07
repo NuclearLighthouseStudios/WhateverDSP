@@ -73,6 +73,10 @@ Using a debugger like the STLinkV3-Mini you can now start and debug project dire
 
 * ¯\\\_(ツ)\_/¯
 
+## Chat
+
+We have an IRC channel on [ibera.chat](https://libera.chat/) called `#wdsp`. 
+
 ## License
 
 The WhateverDSP library is licensed under GNU Lesser General Public License.
