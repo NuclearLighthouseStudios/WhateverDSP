@@ -12,17 +12,26 @@ All code was written from scratch with low latency and performance in mind.
 
 ## Getting started
 
-You can include this library into your project as a git submodule and only need to reference it in your Makefile. A minimal example could look something like this:
+You can either download a zip of this repository, or include this library into your project as a git submodule. You then only need to reference it in your Makefile. A minimal example could look something like this:
 
 ```Makefile
 # Makefile
+
+# Your project name
 TARGET = example
+
+# Target board- at the moment there is just the one
 BOARD = wdsp-dev
 
+# Point this whereever you cloned WhateverDSP
 include WhateverDSP/libwdsp.mk
 ```
 
-Including the WhateverDSP makefile and setting the name of your output sets up everything you need to get you started. In this configuration it would automatically compile an example.c into a ready to flash binary once you invoke `make`. For more complex projects you can specify your own dependencies like usual.
+After setting up your Makefile, you can run `make skel` to initialise a default project. It will create a [`config.ini`](https://github.com/NuclearLighthouseStudios/WhateverDSP/wiki/Configuration), and your main target file (in this case `example.c`). Open it up to get started!
+
+In this configuration, WhateverDSP would automatically compile the example.c into a ready to flash binary once you invoke `make`. For more complex projects you can specify your own dependencies like usual.
+
+### Example code
 
 Here is what that a simple example effect that just passes through audio would look like:
 
