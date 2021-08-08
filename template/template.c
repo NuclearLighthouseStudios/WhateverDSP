@@ -25,27 +25,30 @@
  * 
  * 1. Knobs
  * 
- * 		- Read a knob:
- * 	  	float pot_1 = io_analog_in(POT_1); // Output: 0..1
+ *   - Read a knob:
  * 
- * 		- Scale a knob:
- * 			float pot_1 = io_analog_in(POT_1) * 0.5f; // Output: 0..0.5
- *			float pot_2 = io_analog_in(POT_2) * 2.0f - 1.0f; // Output: -1..1
+ *     float pot_1 = io_analog_in(POT_1); // Output: 0..1
+ * 
+ *   - Scale a knob:
+ * 
+ *     float pot_1 = io_analog_in(POT_1) * 0.5f; // Output: 0..0.5
+ *     float pot_2 = io_analog_in(POT_2) * 2.0f - 1.0f; // Output: -1..1
  * 
  * 2. Buttons
  * 
- *    - Trigger a button:
- *      bool button_1 = io_digital_in(BUTTON_1); // Output: true if down
+ *   - Trigger a button:
  * 
- *    - How to use buttons as toggles instead of triggers:
+ *     bool button_1 = io_digital_in(BUTTON_1); // Output: true if down
+ * 
+ *   - How to use buttons as toggles instead of triggers:
  *    
- *    	// Declare variables outside loop
- *    	bool toggle_trigger = false;
- *    	bool toggled = false;
+ *     // Declare variables outside loop
+ *     bool toggle_trigger = false;
+ *     bool toggled = false;
  * 
- *    	// In your loop (idle or process)
- *			if (io_digital_in(BUTTON_1) && !toggle_trigger) toggled = !toggled;
- *			toggle_trigger = io_digital_in(BUTTON_1);
+ *     // In your loop (idle or process)
+ *     if (io_digital_in(BUTTON_1) && !toggle_trigger) toggled = !toggled;
+ *     toggle_trigger = io_digital_in(BUTTON_1);
  * 
  */
 
