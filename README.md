@@ -48,7 +48,7 @@ void wdsp_process(float *in_buffer[BLOCK_SIZE], float *out_buffer[BLOCK_SIZE])
 If you have `dfu-util` installed the resulting binary can be flashed onto the board by connecting it to your computer via USB, holding down the "Boot" button while powering it up and running `make dfu`.
 
 Want to learn more? Tough luck, there is no documentation yet. But I'm working on it…  
-In the meantime, why not check out the [examples repository](https://github.com/NuclearLighthouseStudios/WhateverDSP-Examples).
+In the meantime, why not check out the [examples repository](https://github.com/NuclearLighthouseStudios/WhateverDSP-Examples) or [come chat with us on IRC](https://github.com/NuclearLighthouseStudios/WhateverDSP#chat).
 
 ## Setting up VSCode
 
