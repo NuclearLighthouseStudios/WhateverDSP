@@ -14,20 +14,19 @@ All code was written from scratch with low latency and performance in mind.
 
 You can include this library into your project as a git submodule and only need to reference it in your Makefile. A minimal example could look something like this:
 
-```
+```Makefile
 # Makefile
 TARGET = example
 BOARD = wdsp-dev
 
 include WhateverDSP/libwdsp.mk
-
 ```
 
 Including the WhateverDSP makefile and setting the name of your output sets up everything you need to get you started. In this configuration it would automatically compile an example.c into a ready to flash binary once you invoke `make`. For more complex projects you can specify your own dependencies like usual.
 
 Here is what that a simple example effect that just passes through audio would look like:
 
-```
+```c
 // example.c
 #include <libwdsp.h>
 
@@ -45,9 +44,10 @@ void wdsp_process(float *in_buffer[BLOCK_SIZE], float *out_buffer[BLOCK_SIZE])
 
 ```
 
-If you have `dfu-util` installed the resulting binary can be flashed onto the board by connecting it to your computer via USB, holding down the "Boot" button while powering it up and running `make dfu`.
+If you have `dfu-util` installed the resulting binary can be flashed onto the board by connecting it to your computer via USB, holding down the "Boot" button while plugging the 9V DC power in, and running `make dfu`.
 
-Want to learn more? Tough luck, there is no documentation yet. But I'm working on it…  
+Want to learn more? [We're working on the documentation in the Github wiki](https://github.com/NuclearLighthouseStudios/WhateverDSP/wiki). 
+
 In the meantime, why not check out the [examples repository](https://github.com/NuclearLighthouseStudios/WhateverDSP-Examples) or [come chat with us on IRC](https://github.com/NuclearLighthouseStudios/WhateverDSP#chat).
 
 ## Setting up VSCode
