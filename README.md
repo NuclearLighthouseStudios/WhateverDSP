@@ -12,26 +12,9 @@ All code was written from scratch with low latency and performance in mind.
 
 ## Getting started
 
-You can either download a zip of this repository, or include this library into your project as a git submodule. You then only need to reference it in your Makefile. A minimal example could look something like this:
+[See our Getting started page](https://github.com/NuclearLighthouseStudios/WhateverDSP/wiki/Getting-started).
 
-```Makefile
-# Makefile
-
-# Your project name
-TARGET = example
-
-# Target board- at the moment there is just the one
-BOARD = wdsp-dev
-
-# Point this whereever you cloned WhateverDSP
-include WhateverDSP/libwdsp.mk
-```
-
-After setting up your Makefile, you can run `make skel` to initialise a default project. It will create a [`config.ini`](https://github.com/NuclearLighthouseStudios/WhateverDSP/wiki/Configuration), and your main target file (in this case `example.c`). Open it up to get started!
-
-In this configuration, WhateverDSP would automatically compile the example.c into a ready to flash binary once you invoke `make`. For more complex projects you can specify your own dependencies like usual.
-
-### Example code
+## Example code
 
 Here is what that a simple example effect that just passes through audio would look like:
 
@@ -53,35 +36,9 @@ void wdsp_process(float *in_buffer[BLOCK_SIZE], float *out_buffer[BLOCK_SIZE])
 
 ```
 
-If you have `dfu-util` installed the resulting binary can be flashed onto the board by connecting it to your computer via USB, holding down the "Boot" button while plugging the 9V DC power in, and running `make dfu`.
-
 Want to learn more? [We're working on the documentation in the Github wiki](https://github.com/NuclearLighthouseStudios/WhateverDSP/wiki). 
 
 In the meantime, why not check out the [examples repository](https://github.com/NuclearLighthouseStudios/WhateverDSP-Examples) or [come chat with us on IRC](https://github.com/NuclearLighthouseStudios/WhateverDSP#chat).
-
-## Setting up VSCode
-
-Running `make vscode` in your project directory sets up a workspace with all required setting to get you started with development and debugging in VSCode. It relies on the C/C+++ and Cortex-Debug extensions as well as OpenOCD and GDB to talk to the board.
-
-Using a debugger like the STLinkV3-Mini you can now start and debug project directly on the hardware just by hitting F5.
-
-## Required Software
-
-### On Linux
-
-* `arm-none-eabi-gcc` GCC toolchain
-* `arm-none-eabi-newlib` C library
-* `dfu-util` if you want to flash via USB
-* `arm-none-eabi-gdb` and `openocd` for use with 
-
-### On MacOS
-
-* `brew install gcc-arm-embedded` For all the toolchainy bits
-* `brew install dfu-util` for flashing via USB
-
-### On Windows
-
-* ¯\\\_(ツ)\_/¯
 
 ## Chat
 
