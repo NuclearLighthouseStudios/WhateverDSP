@@ -14,7 +14,7 @@ CONFIG_FILE ?= $(wildcard ./config.ini)
 export USER_CONFIG ?= $(realpath $(CONFIG_FILE))
 
 include $(WDSP_PATH)/buildvars.mk
-include $(WDSP_PATH)/skel.mk
+include $(WDSP_PATH)/init.mk
 
 C_INCLUDES = \
 -I $(WDSP_PATH)/$(CONFIG_DIR) \
