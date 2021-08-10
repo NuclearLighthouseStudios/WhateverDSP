@@ -16,21 +16,22 @@ All code was written from scratch with low latency and performance in mind.
 
 ## Example code
 
-Here is what that a simple example effect that just passes through audio would look like:
+Here is what that a simple volume control that scales the audio level using a potentiometer looks like:
 
 ```c
-// example.c
 #include <libwdsp.h>
 
 void wdsp_process(float *in_buffer[BLOCK_SIZE], float *out_buffer[BLOCK_SIZE])
 {
+	float volume = io_analog_in(POT_1);
+
 	for (int i = 0; i < BLOCK_SIZE; i++)
 	{
-		float l_samp = in_buffer[0][i];
-		float r_samp = in_buffer[1][i];
+		float l_sample = in_buffer[0][i];
+		float r_sample = in_buffer[1][i];
 
-		out_buffer[0][i] = l_samp;
-		out_buffer[1][i] = r_samp;
+		out_buffer[0][i] = l_sample * volume;
+		out_buffer[1][i] = r_sample * volume;
 	}
 }
 
