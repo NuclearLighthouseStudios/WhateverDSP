@@ -1,9 +1,5 @@
-# Only define these target when we're not building the library
-ifdef WDSP_PATH
-
-.PHONY: vscode init
+.PHONY: init
 init:
-	
 	@echo "----------------------------------------------------------------------"
 	@echo "Initialising a new WhateverDSP project.."
 	@echo "----------------------------------------------------------------------\n"
@@ -25,5 +21,3 @@ init:
 	@echo "You may also want to check out the examples:"
 	@echo "https://github.com/NuclearLighthouseStudios/WhateverDSP-Examples"
 	@echo "\nHave fun with WhateverDSP! ¯\_(ツ)_/¯\n"
-
-endif
