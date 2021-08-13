@@ -83,6 +83,21 @@ static inline void sys_itm_send_int(unsigned int data, unsigned int port)
 #endif
 }
 
+static inline void sys_itm_send_char(unsigned char data, unsigned int port)
+{
+#ifdef DEBUG
+	if (((ITM->TCR & ITM_TCR_ITMENA_Msk) != 0UL) &&
+		((ITM->TER & 1UL << port) != 0UL))
+	{
+		while (ITM->PORT[port].u32 == 0UL)
+		{
+			__NOP();
+		}
+		ITM->PORT[port].u8 = data;
+	}
+#endif
+}
+
 static inline void sys_itm_send_float(float value, unsigned int port)
 {
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
@@ -93,7 +108,7 @@ int _write(int file, char *ptr, int len)
 {
 #ifdef DEBUG
 	for (unsigned int i = 0; i < len; i++)
-		sys_itm_send_int((*ptr++), 0);
+		sys_itm_send_char((*ptr++), 0);
 #endif
 	return len;
 }
