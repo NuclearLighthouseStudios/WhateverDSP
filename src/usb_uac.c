@@ -1,10 +1,10 @@
 #include <stdbool.h>
-#include <stdio.h>
 
 #include "core.h"
 #include "board.h"
 
 #include "system.h"
+#include "debug.h"
 #include "usb_config.h"
 
 #include "usb_uac.h"
@@ -20,6 +20,10 @@ void usb_uac_add_interface(usb_interface_descriptor *interface)
 		uac_header.bInCollection += 1;
 		uac_header.bLength += 1;
 		uac_header.wTotalLength += 1;
+	}
+	else
+	{
+		panic("Maximum number of interfaces exceeded!\n");
 	}
 }
 

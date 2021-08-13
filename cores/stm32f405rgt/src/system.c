@@ -7,6 +7,7 @@
 #include "board.h"
 
 #include "system.h"
+#include "debug.h"
 
 volatile unsigned long int __CCMRAM sys_ticks = 0;
 
@@ -137,6 +138,8 @@ void sys_busy(volatile bool *flag)
 			return;
 		}
 	}
+
+	error("Exceeded maximum number of busy flags!\n");
 }
 
 void sys_schedule(sys_schedulable_func func)
@@ -150,6 +153,8 @@ void sys_schedule(sys_schedulable_func func)
 			return;
 		}
 	}
+
+	error("Exceeded maximum number of scheduled calls!\n");
 }
 
 void sys_idle(void)
@@ -200,7 +205,7 @@ void sys_idle(void)
 
 		time_idle = 0;
 		time_active = 0;
-}
+	}
 #else
 	__WFE();
 #endif

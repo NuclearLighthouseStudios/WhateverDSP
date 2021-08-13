@@ -9,6 +9,7 @@
 #include "core.h"
 
 #include "system.h"
+#include "debug.h"
 #include "usb.h"
 #include "usb_phy.h"
 #include "usb_config.h"
@@ -383,6 +384,7 @@ static bool handle_in_setup(usb_setup_packet *packet, usb_in_endpoint *in_ep, us
 		break;
 
 		default:
+			error("Unknown request %d\n", packet->bRequest);
 			return false;
 	}
 
@@ -434,6 +436,7 @@ static bool handle_out_setup(usb_setup_packet *packet, usb_in_endpoint *in_ep, u
 		break;
 
 		default:
+			error("Unknown request %d\n", packet->bRequest);
 			return false;
 	}
 

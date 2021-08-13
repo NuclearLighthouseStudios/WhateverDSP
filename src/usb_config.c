@@ -1,11 +1,12 @@
 #include <stdbool.h>
-#include <stdio.h>
 #include <string.h>
+#include <stddef.h>
 
 #include "core.h"
 #include "board.h"
 
 #include "system.h"
+#include "debug.h"
 #include "usb.h"
 #include "usb_phy.h"
 #include "usb_config.h"
@@ -147,7 +148,7 @@ static bool handle_device_setup(usb_setup_packet *packet)
 
 				default:
 				{
-					printf("GET_DESC? %d[%d] %d\n", type, index, packet->wLength);
+					error("Unknown descriptor type %d, index %d, length %d\n", type, index, packet->wLength);
 					return false;
 				}
 			}
@@ -176,7 +177,7 @@ static bool handle_device_setup(usb_setup_packet *packet)
 
 		default:
 		{
-			printf("SETUP? %d\n", packet->bRequest);
+			error("Unknown request %d\n", packet->bRequest);
 			return false;
 		}
 	}
@@ -207,7 +208,7 @@ static void handle_setup(usb_out_endpoint *ep, usb_setup_packet *packet)
 		default:
 		{
 			success = false;
-			printf("Recipient? %d\n", packet->bRequest);
+			error("Unknown setup packet recipient %d, index %d\n", packet->bRequest, packet->wIndex);
 			return;
 		}
 	}
@@ -263,7 +264,10 @@ static void out_start(usb_out_endpoint *ep)
 void usb_config_add_interface(usb_interface_descriptor *desc, usb_config_setup_handler handler)
 {
 	if (num_interfaces >= MAX_INTERFACES)
+	{
+		panic("Maximum number of interfaces exceeded!\n");
 		return;
+	}
 
 	usb_config_add_descriptor((usb_descriptor *)desc);
 
@@ -280,6 +284,8 @@ void usb_config_add_descriptor(usb_descriptor *desc)
 {
 	if (num_conf_descriptors < MAX_CONF_DESCS)
 		conf_descriptors[num_conf_descriptors++] = desc;
+	else
+		panic("Maximum number of configuration descriptors exceeded!\n");
 }
 
 int usb_config_add_string(char *str)
@@ -291,6 +297,7 @@ int usb_config_add_string(char *str)
 	}
 	else
 	{
+		panic("Maximum number of string descriptors exceeded!\n");
 		return 0;
 	}
 }
