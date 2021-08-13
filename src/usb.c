@@ -1,7 +1,7 @@
 #include <stdbool.h>
-#include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <stddef.h>
 
 #include "core.h"
 #include "board.h"

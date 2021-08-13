@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <string.h>
+#include <stddef.h>
 
 #include "core.h"
 #include "board.h"
