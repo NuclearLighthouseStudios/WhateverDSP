@@ -99,6 +99,14 @@ int _write(int file, char *ptr, int len)
 	return len;
 }
 
+void _exit(int status)
+{
+	__disable_irq();
+	__BKPT(0);
+	for (;;)
+		__WFI();
+}
+
 void sys_delay(unsigned long int delay)
 {
 	unsigned long int tickstart = sys_ticks;
@@ -192,7 +200,7 @@ void sys_idle(void)
 
 		time_idle = 0;
 		time_active = 0;
-	}
+}
 #else
 	__WFE();
 #endif
