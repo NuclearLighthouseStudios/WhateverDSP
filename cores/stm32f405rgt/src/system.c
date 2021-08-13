@@ -7,6 +7,7 @@
 #include "board.h"
 
 #include "system.h"
+#include "twait.h"
 #include "debug.h"
 
 volatile unsigned long int __CCMRAM sys_ticks = 0;
@@ -34,8 +35,7 @@ static void sys_init_clock(void)
 
 	// Turn on external high speed oscillator
 	SET_BIT(RCC->CR, RCC_CR_HSEON);
-	while (!READ_BIT(RCC->CR, RCC_CR_HSERDY))
-		__NOP();
+	TIMEOUT_WAIT(!READ_BIT(RCC->CR, RCC_CR_HSERDY), 1500);
 
 	// Turn on clock security system
 	SET_BIT(RCC->CR, RCC_CR_CSSON);
@@ -47,16 +47,14 @@ static void sys_init_clock(void)
 	MODIFY_REG(RCC->PLLCFGR, RCC_PLLCFGR_PLLP_Msk, 0b00 << RCC_PLLCFGR_PLLP_Pos);
 	MODIFY_REG(RCC->PLLCFGR, RCC_PLLCFGR_PLLQ_Msk, 7 << RCC_PLLCFGR_PLLQ_Pos);
 	SET_BIT(RCC->CR, RCC_CR_PLLON);
-	while (!READ_BIT(RCC->CR, RCC_CR_PLLRDY))
-		__NOP();
+	TIMEOUT_WAIT(!READ_BIT(RCC->CR, RCC_CR_PLLRDY), 500);
 
 	// Set up clock domain prescalers and set system clock source to PLL
 	MODIFY_REG(RCC->CFGR, RCC_CFGR_PPRE1_Msk, RCC_CFGR_PPRE1_DIV4);
 	MODIFY_REG(RCC->CFGR, RCC_CFGR_PPRE2_Msk, RCC_CFGR_PPRE2_DIV2);
 	MODIFY_REG(RCC->CFGR, RCC_CFGR_HPRE_Msk, RCC_CFGR_HPRE_DIV1);
 	MODIFY_REG(RCC->CFGR, RCC_CFGR_SW_Msk, RCC_CFGR_SW_PLL);
-	while (!READ_BIT(RCC->CFGR, RCC_CFGR_SWS_PLL))
-		__NOP();
+	TIMEOUT_WAIT(!READ_BIT(RCC->CFGR, RCC_CFGR_SWS_PLL), 10);
 
 	// Turn off internal oscillator
 	CLEAR_BIT(RCC->CR, RCC_CR_HSION);

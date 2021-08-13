@@ -6,6 +6,7 @@
 #include "board.h"
 
 #include "system.h"
+#include "twait.h"
 #include "audio.h"
 #include "audio_analog.h"
 
@@ -216,8 +217,7 @@ void audio_analog_init(void)
 	MODIFY_REG(RCC->PLLI2SCFGR, RCC_PLLI2SCFGR_PLLI2SR_Msk, PLLR << RCC_PLLI2SCFGR_PLLI2SR_Pos);
 	MODIFY_REG(RCC->PLLI2SCFGR, RCC_PLLI2SCFGR_PLLI2SN_Msk, PLLN << RCC_PLLI2SCFGR_PLLI2SN_Pos);
 	SET_BIT(RCC->CR, RCC_CR_PLLI2SON);
-	while (!READ_BIT(RCC->CR, RCC_CR_PLLI2SRDY))
-		__NOP();
+	TIMEOUT_WAIT(!READ_BIT(RCC->CR, RCC_CR_PLLI2SRDY), 2500);
 
 	audio_init_I2S_in();
 	audio_init_I2S_out();

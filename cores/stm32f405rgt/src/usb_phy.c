@@ -9,7 +9,7 @@
 #include "board.h"
 
 #include "system.h"
-
+#include "twait.h"
 #include "usb.h"
 #include "usb_phy.h"
 
@@ -284,12 +284,10 @@ void usb_phy_cancel_transmit(usb_in_endpoint *ep)
 {
 	SET_BIT(USB_OTG_FS_INEP(ep->epnum)->DIEPINT, USB_OTG_DIEPINT_EPDISD);
 	SET_BIT(USB_OTG_FS_INEP(ep->epnum)->DIEPCTL, USB_OTG_DIEPCTL_EPDIS | USB_OTG_DIEPCTL_SNAK);
-	while (!READ_BIT(USB_OTG_FS_INEP(ep->epnum)->DIEPINT, USB_OTG_DIEPINT_EPDISD))
-		__NOP();
+	TIMEOUT_WAIT(!READ_BIT(USB_OTG_FS_INEP(ep->epnum)->DIEPINT, USB_OTG_DIEPINT_EPDISD), 10);
 
 	MODIFY_REG(USB_OTG_FS->GRSTCTL, USB_OTG_GRSTCTL_TXFNUM_Msk, (ep->fifo_num << USB_OTG_GRSTCTL_TXFNUM_Pos) | USB_OTG_GRSTCTL_TXFFLSH);
-	while (READ_BIT(USB_OTG_FS->GRSTCTL, USB_OTG_GRSTCTL_TXFFLSH))
-		__NOP();
+	TIMEOUT_WAIT(READ_BIT(USB_OTG_FS->GRSTCTL, USB_OTG_GRSTCTL_TXFFLSH), 10);
 }
 
 void usb_phy_transmit(usb_in_endpoint *ep)
@@ -354,10 +352,12 @@ void usb_phy_transmit(usb_in_endpoint *ep)
 
 void usb_phy_cancel_receive(usb_out_endpoint *ep)
 {
+	// The commented out stuff here doesn't work properly.
+	// The actual procedure to cancel a reception is VERY complicated!
+
 	// SET_BIT(USB_OTG_FS_OUTEP(ep->epnum)->DOEPINT, USB_OTG_DOEPINT_EPDISD);
 	SET_BIT(USB_OTG_FS_OUTEP(ep->epnum)->DOEPCTL, USB_OTG_DOEPCTL_EPDIS | USB_OTG_DOEPCTL_SNAK);
-	// while (!READ_BIT(USB_OTG_FS_OUTEP(ep->epnum)->DOEPINT, USB_OTG_DOEPINT_EPDISD))
-		// __NOP();
+	// TIMEOUT_WAIT(!READ_BIT(USB_OTG_FS_OUTEP(ep->epnum)->DOEPINT, USB_OTG_DOEPINT_EPDISD), 10);
 }
 
 void usb_phy_receive(usb_out_endpoint *ep)
@@ -423,8 +423,7 @@ void usb_phy_in_ep_init(usb_in_endpoint *ep)
 	ep->fifo_num = fifo_num;
 	MODIFY_REG(USB_OTG_FS_INEP(epnum)->DIEPCTL, USB_OTG_DIEPCTL_TXFNUM_Msk, fifo_num << USB_OTG_DIEPCTL_TXFNUM_Pos);
 
-	while (READ_BIT(USB_OTG_FS->GRSTCTL, USB_OTG_GRSTCTL_TXFFLSH))
-		__NOP();
+	TIMEOUT_WAIT(READ_BIT(USB_OTG_FS->GRSTCTL, USB_OTG_GRSTCTL_TXFFLSH), 10);
 
 	if (epnum == 0)
 	{
@@ -515,34 +514,31 @@ void usb_phy_reset(void)
 
 	// Flush transmit fifos
 	MODIFY_REG(USB_OTG_FS->GRSTCTL, USB_OTG_GRSTCTL_TXFNUM_Msk, (0x10 << USB_OTG_GRSTCTL_TXFNUM_Pos) | USB_OTG_GRSTCTL_TXFFLSH);
-	while (READ_BIT(USB_OTG_FS->GRSTCTL, USB_OTG_GRSTCTL_TXFFLSH))
-		__NOP();
+	TIMEOUT_WAIT(READ_BIT(USB_OTG_FS->GRSTCTL, USB_OTG_GRSTCTL_TXFFLSH), 10);
 
 	// Flush receive fifo
 	SET_BIT(USB_OTG_FS->GRSTCTL, USB_OTG_GRSTCTL_RXFFLSH);
-	while (READ_BIT(USB_OTG_FS->GRSTCTL, USB_OTG_GRSTCTL_RXFFLSH))
-		__NOP();
+	TIMEOUT_WAIT(READ_BIT(USB_OTG_FS->GRSTCTL, USB_OTG_GRSTCTL_RXFFLSH), 10);
 }
 
 void usb_phy_init(usb_in_endpoint in_eps[], usb_out_endpoint out_eps[])
 {
 	usb_phy_setup();
 
-	// Reset USB controller
+	// Wait for AHB idle
 	while (!READ_BIT(USB_OTG_FS->GRSTCTL, USB_OTG_GRSTCTL_AHBIDL))
 		__NOP();
 
+	// Reset USB controller
 	SET_BIT(USB_OTG_FS->GRSTCTL, USB_OTG_GRSTCTL_CSRST);
-
-	while (READ_BIT(USB_OTG_FS->GRSTCTL, USB_OTG_GRSTCTL_CSRST))
-		__NOP();
-
-	// Wait a little longer
-	sys_delay(50);
+	TIMEOUT_WAIT(READ_BIT(USB_OTG_FS->GRSTCTL, USB_OTG_GRSTCTL_CSRST), 10);
 
 	// Wait for AHB idle again
 	while (!READ_BIT(USB_OTG_FS->GRSTCTL, USB_OTG_GRSTCTL_AHBIDL))
 		__NOP();
+
+	// Wait a little longer
+	sys_delay(50);
 
 	// Power on the transciever
 	SET_BIT(USB_OTG_FS->GCCFG, USB_OTG_GCCFG_PWRDWN);
