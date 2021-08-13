@@ -2,21 +2,22 @@
 #define DEBUG_H
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #ifdef DEBUG
 
-#define debug(...)\
+#define debug(...) ({\
 printf("%s:%d %s(): ", __FILE__, __LINE__, __func__);\
-printf(__VA_ARGS__)
+printf(__VA_ARGS__);})
 
-#define error(...)\
+#define error(...) ({\
 fprintf(stderr, "ERROR: %s:%d %s(): ", __FILE__, __LINE__, __func__);\
-fprintf(stderr, __VA_ARGS__)
+fprintf(stderr, __VA_ARGS__);})
 
-#define panic(...)\
+#define panic(...) ({\
 fprintf(stderr, "PANIC: %s:%d %s(): ", __FILE__, __LINE__, __func__);\
 fprintf(stderr, __VA_ARGS__);\
-abort()
+abort();})
 
 #else
 #define debug(...) (void)(0)
