@@ -148,13 +148,31 @@ static void io_init_DAC(void)
 	// Enable DAC clock
 	SET_BIT(RCC->APB1ENR, RCC_APB1ENR_DACEN);
 
-	// Enable DAC channel 1 & 2
-	SET_BIT(DAC->CR, DAC_CR_EN1);
-	SET_BIT(DAC->CR, DAC_CR_EN2);
+	for (int i = 0; i < sizeof(io_pins) / sizeof(*io_pins); i++)
+	{
+		if (io_pins[i].mode == ANALOG_OUT)
+		{
+			switch (io_pins[i].channel)
+			{
+				case 1:
+					SET_BIT(DAC->CR, DAC_CR_EN1);
+					break;
+
+				case 2:
+					SET_BIT(DAC->CR, DAC_CR_EN2);
+					break;
+
+				default:
+			}
+		}
+	}
 }
 
 void io_init(void)
 {
+	bool has_adc = false;
+	bool has_dac = false;
+
 	// Enable GPIOA, GPIOB and GPIOC periphery clocks
 	SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_GPIOAEN);
 	SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_GPIOBEN);
@@ -172,13 +190,23 @@ void io_init(void)
 			MODIFY_REG(io_pins[i].port->MODER, io_pins[i].pin_mode_mask, 0b00 << io_pins[i].pin_mode_pos);
 			MODIFY_REG(io_pins[i].port->PUPDR, io_pins[i].pin_pupdr_mask, 0b01 << io_pins[i].pin_pupdr_pos);
 		}
-		else if ((io_pins[i].mode == ANALOG_IN) || (io_pins[i].mode == ANALOG_OUT))
+		else if (io_pins[i].mode == ANALOG_IN)
 		{
+			has_adc = true;
+			MODIFY_REG(io_pins[i].port->MODER, io_pins[i].pin_mode_mask, 0b11 << io_pins[i].pin_mode_pos);
+			MODIFY_REG(io_pins[i].port->PUPDR, io_pins[i].pin_pupdr_mask, 0b00 << io_pins[i].pin_pupdr_pos);
+		}
+		else if (io_pins[i].mode == ANALOG_OUT)
+		{
+			has_dac = true;
 			MODIFY_REG(io_pins[i].port->MODER, io_pins[i].pin_mode_mask, 0b11 << io_pins[i].pin_mode_pos);
 			MODIFY_REG(io_pins[i].port->PUPDR, io_pins[i].pin_pupdr_mask, 0b00 << io_pins[i].pin_pupdr_pos);
 		}
 	}
 
-	io_init_ADC();
-	io_init_DAC();
+	if (has_adc)
+		io_init_ADC();
+
+	if (has_dac)
+		io_init_DAC();
 }
