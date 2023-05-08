@@ -12,9 +12,9 @@ export LIB_NAME ?= libwdsp
 endif
 
 ifeq ($(DEBUG), true)
-export BUILD_DIR ?= build/debug
+export BUILD_DIR ?= build/debug/$(BOARD)
 else
-export BUILD_DIR ?= build
+export BUILD_DIR ?= build/release/$(BOARD)
 endif
 
 export CONFIG_DIR = $(BUILD_DIR)/config
