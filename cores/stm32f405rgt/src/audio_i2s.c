@@ -135,7 +135,7 @@ static void audio_init_I2S_out(void)
 	// Set I2S mode
 	MODIFY_REG(SPI2->I2SCFGR, SPI_I2SCFGR_I2SMOD_Msk, 0b1 << SPI_I2SCFGR_I2SMOD_Pos);  // Enable I2S Mode on SPI peripheral
 	MODIFY_REG(SPI2->I2SCFGR, SPI_I2SCFGR_I2SCFG_Msk, 0b10 << SPI_I2SCFGR_I2SCFG_Pos); // Set peripheral to master send mode
-	MODIFY_REG(SPI2->I2SCFGR, SPI_I2SCFGR_I2SSTD_Msk, 0b00 << SPI_I2SCFGR_I2SSTD_Pos); // Pillips I2S standard
+	MODIFY_REG(SPI2->I2SCFGR, SPI_I2SCFGR_I2SSTD_Msk, 0b00 << SPI_I2SCFGR_I2SSTD_Pos); // Phillips I2S standard
 	MODIFY_REG(SPI2->I2SCFGR, SPI_I2SCFGR_DATLEN_Msk, 0b01 << SPI_I2SCFGR_DATLEN_Pos); // 24 bit data length
 
 	// Set I2S clock
@@ -199,7 +199,7 @@ static void audio_init_I2S_in(void)
 	// Set I2S mode
 	MODIFY_REG(SPI3->I2SCFGR, SPI_I2SCFGR_I2SMOD_Msk, 0b1 << SPI_I2SCFGR_I2SMOD_Pos);  // Enable I2S Mode on SPI peripheral
 	MODIFY_REG(SPI3->I2SCFGR, SPI_I2SCFGR_I2SCFG_Msk, 0b11 << SPI_I2SCFGR_I2SCFG_Pos); // Set peripheral to master receive mode
-	MODIFY_REG(SPI3->I2SCFGR, SPI_I2SCFGR_I2SSTD_Msk, 0b00 << SPI_I2SCFGR_I2SSTD_Pos); // Pillips I2S standard
+	MODIFY_REG(SPI3->I2SCFGR, SPI_I2SCFGR_I2SSTD_Msk, 0b00 << SPI_I2SCFGR_I2SSTD_Pos); // Phillips I2S standard
 	MODIFY_REG(SPI3->I2SCFGR, SPI_I2SCFGR_DATLEN_Msk, 0b01 << SPI_I2SCFGR_DATLEN_Pos); // 24 bit data length
 
 	// Set I2S clock
