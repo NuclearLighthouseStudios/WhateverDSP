@@ -8,7 +8,6 @@
 			"request": "launch",
 			"type": "cortex-debug",
 			"servertype": "openocd",
-			"runToMain": true,
 			"interface": "swd",
 			"device": "STM32F405rgtx",
 			"svdFile": ".vscode/STM32F405.svd",
