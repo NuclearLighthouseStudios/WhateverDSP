@@ -4,7 +4,7 @@
             "name": "WhateverDSP",
             "includePath": [
                 "${workspaceFolder}/_WDSP_PATH_/includes/**",
-                "${workspaceFolder}/_WDSP_PATH_/build/debug/config/",
+                "${workspaceFolder}/_WDSP_PATH_/build/debug/_BOARD_/config/",
                 "${workspaceFolder}/_WDSP_PATH_/boards/_BOARD_/**",
                 "${workspaceFolder}/_WDSP_PATH_/cores/_CORE_/**"
             ],
