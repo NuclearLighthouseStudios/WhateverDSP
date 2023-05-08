@@ -28,14 +28,14 @@ volatile bool __CCMRAM audio_analog_dac_ready = false;
 __STATIC_FORCEINLINE float __VCVT_F32_S32(uint32_t value)
 {
 	float result;
-	__ASM volatile ("vcvt.f32.s32 %0, %1, #32" : "=t" (result) : "t" (value));
+	__ASM volatile ("vcvt.f32.s32 %0, %1, #31" : "=t" (result) : "t" (value));
 	return result;
 }
 
 __STATIC_FORCEINLINE int32_t __VCVT_S32_F32(float value)
 {
 	int32_t result;
-	__ASM volatile ("vcvt.s32.f32 %0, %1, #32" : "=t" (result) : "t" (value));
+	__ASM volatile ("vcvt.s32.f32 %0, %1, #31" : "=t" (result) : "t" (value));
 	return result;
 }
 
