@@ -11,13 +11,14 @@ endif
 WDSP_PATH := $(dir $(lastword $(MAKEFILE_LIST)))
 CONFIG_FILE ?= $(wildcard ./config.ini)
 
-export USER_CONFIG ?= $(realpath $(CONFIG_FILE))
+export USER_CONFIG ?= $(abspath $(CONFIG_FILE))
+export BUILD_ROOT ?= $(abspath .wdsp)
 
 include $(WDSP_PATH)/buildvars.mk
 include $(WDSP_PATH)/init.mk
 
 C_INCLUDES = \
--I $(WDSP_PATH)/$(CONFIG_DIR) \
+-I $(CONFIG_DIR) \
 -I $(WDSP_PATH)/includes/libwdsp \
 -I $(WDSP_PATH)/boards/$(BOARD) \
 -I $(WDSP_PATH)/cores/$(CORE)
@@ -46,7 +47,7 @@ $(TARGET).hex: $(TARGET)
 $(TARGET).bin: $(TARGET)
 	$(BIN) $< $@
 
-$(TARGET): $(WDSP_PATH)/$(LIB_NAME).a
+$(TARGET): $(LIB_NAME).a
 
 .PHONY: libclean
 libclean:

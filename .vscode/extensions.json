@@ -1,6 +1,5 @@
 {
 	"recommendations": [
-		"marus25.cortex-debug",
 		"ms-vscode.cpptools"
 	]
 }

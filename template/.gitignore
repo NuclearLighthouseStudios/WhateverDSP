@@ -1,0 +1,4 @@
+# Example .gitignore only ignores libWDSP out of tree build directory.
+# Add your own ignores to suit your taste.
+
+.wdsp/
