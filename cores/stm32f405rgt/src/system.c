@@ -70,6 +70,12 @@ void sys_enable_fpu(void)
 	SCB->CPACR |= ((3UL << 10 * 2) | (3UL << 11 * 2));
 }
 
+void sys_reset(void)
+{
+	NVIC_SystemReset();
+	while(true);
+}
+
 static inline void sys_itm_send_int(unsigned int data, unsigned int port)
 {
 #ifdef DEBUG

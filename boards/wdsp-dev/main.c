@@ -7,6 +7,7 @@
 
 #include "system.h"
 #include "io.h"
+#include "bootloader.h"
 #include "audio.h"
 #include "audio_usb.h"
 #include "usb.h"
@@ -23,6 +24,8 @@ int main(void)
 
 	sys_init();
 	io_init();
+
+	bootloader_check(LED_1, BUTTON_1);
 
 #if CONFIG_MODULES_USB == true
 	usb_init();

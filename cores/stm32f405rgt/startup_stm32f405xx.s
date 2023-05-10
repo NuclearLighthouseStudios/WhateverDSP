@@ -1,21 +1,14 @@
 /**
   ******************************************************************************
   * @file      startup_stm32f405xx.s
-  * @author    MCD Application Team
+  * @author    MCD Application Team & libWDSP authors
   * @brief     STM32F405xx Devices vector table for GCC based toolchains.
-  *            This module performs:
-  *                - Set the initial SP
-  *                - Set the initial PC == Reset_Handler,
-  *                - Set the vector table entries with the exceptions ISR address
-  *                - Branches to main in the C library (which eventually
-  *                  calls main()).
-  *            After Reset the Cortex-M4 processor is in Thread mode,
-  *            priority is Privileged, and the Stack is set to Main.
+  *            Modified for libWDSP.
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2017 STMicroelectronics.
-  * All rights reserved.</center></h2>
+  * Copyright (c) 2017 STMicroelectronics.
+  * All rights reserved.
   *
   * This software component is licensed by ST under BSD 3-Clause license,
   * the "License"; You may not use this file except in compliance with the
@@ -50,12 +43,37 @@
 // end address for the .bss section. defined in linker script
 .word	_ebss
 
+.section	.bss
+.type _enter_bootloader, %common
+_enter_bootloader:
+.word	0
+
 .section	.text.Reset_Handler
 .weak	Reset_Handler
 .type	Reset_Handler, %function
 Reset_Handler:
 	ldr		sp, =_estack
 
+// Check if there was a software reset
+	ldr		r0, =0x40023874
+	ldr		r2, [r0]
+	mov		r1, #0x1000000
+	str		r1, [r0]
+	tst		r2, #0x10000000
+	beq		SkipBootloader
+
+// Check if the enter bootloader flag was set
+	ldr		r0, =_enter_bootloader
+	ldr		r0, [r0]
+	teq		r0, #0
+	beq		SkipBootloader
+
+// This code jumps to the default bootloader in system memory
+	ldr		r0, =0x1FFF0000
+	ldr		sp, [r0]
+	ldr		pc, [r0,#4]
+
+SkipBootloader:
 // Copy the data segment initializers from flash to SRAM
 	movs	r1, #0
 	b		LoopCopyDataInit

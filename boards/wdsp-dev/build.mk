@@ -6,6 +6,7 @@ src/wdsp.c \
 src/audio.c \
 boards/$(BOARD)/main.c \
 cores/$(CORE)/src/system.c \
+cores/$(CORE)/src/bootloader.c \
 cores/$(CORE)/src/audio_i2s.c \
 cores/$(CORE)/src/io.c\
 cores/$(CORE)/src/audio.c
