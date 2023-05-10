@@ -1,7 +1,5 @@
 #include <stdbool.h>
 
-#include "stm32f4xx.h"
-
 #include "core.h"
 #include "board.h"
 
