@@ -4,15 +4,20 @@
 
 ![image](https://user-images.githubusercontent.com/55932282/128610385-a0652180-9c79-4f24-bbf6-792533ffc454.png)
 
-WhateverDSP is an open C/C++ framework for high quality audio processing on embedded devices. It's still in pretty early development and right now only targets the accompanying WhateverDSP Development board and it's STM32F405 processor.
+WhateverDSP is an open C/C++ framework for high quality audio processing on embedded devices. Right now, it targets two boards:
 
-It supports low latency (<1ms) 32bit float audio processing, analog and digital GPIO, MIDI via both the classic serial interface and USB in addition to full duplex class compliant USB audio at up to 48khz in both 24 bit and 32 bit float sample formats.
+- Version 1 of the WhateverDSP Development board (shown above)
+- The [FXSDP](https://github.com/NuclearLighthouseStudios/FXDSP) guitar pedal
+
+Both of these run on the STM32F405 processor, but support for other processors is viable as the framework itself is CPU agnostic.
+
+WDSP supports low latency (<1ms) 32bit float audio processing, analog and digital GPIO, MIDI via both the classic serial interface and USB in addition to full duplex class compliant USB audio at up to 48khz in both 24 bit and 32 bit float sample formats.
 
 All code was written from scratch with low latency and performance in mind.
 
 ## Getting started
 
-[See our Getting started page](https://github.com/NuclearLighthouseStudios/WhateverDSP/wiki/Getting-started).
+[To get started, please see the Getting started page in our wiki](https://github.com/NuclearLighthouseStudios/WhateverDSP/wiki/Getting-started).
 
 ## Example code
 
@@ -45,7 +50,7 @@ In the meantime, why not check out the [examples repository](https://github.com/
 
 We have an IRC channel on [libera.chat](https://libera.chat/) called `#wdsp`. 
 
-## Development board
+## V1 Development board
 
 The current version of the WhateverDSP dev board runs on 9V DC power and includes:
 
@@ -68,7 +73,11 @@ Headers:
 - 3 digital inputs
 - 3 digital outputs
 
-The board will be released as open-source after some further testing. You will also be able to purchase them directly fully assembled. In the meantime, come hang on the IRC channel for updates!
+## FXDSP guitar pedal
+
+FXDSP is a programmable DSP platform in a familiar guitar pedal form factor. It has interchangeable user interface PCBs so it can easily be tailored to each effects needs.
+
+[Read more about FXDSP here](https://github.com/NuclearLighthouseStudios/FXDSP).
 
 ## License
 
