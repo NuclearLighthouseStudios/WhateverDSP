@@ -1,0 +1,61 @@
+#ifndef __CONF_AUDIO_USB_H
+#define __CONF_AUDIO_USB_H
+
+#include <stdint.h>
+
+#define f32 1
+#define s24 2
+#define s16 3
+
+#include "config.h"
+
+#define SAMPLE_RATE CONFIG_AUDIO_SAMPLE_RATE
+#define BLOCK_SIZE CONFIG_AUDIO_BLOCK_SIZE
+
+#define NUM_USB_CHANNELS CONFIG_AUDIO_USB_CHANNELS
+
+#if NUM_USB_CHANNELS == 1
+#define USB_CHANNEL_CONFIG 0x0000
+#elif NUM_USB_CHANNELS == 2
+#define USB_CHANNEL_CONFIG 0x0003
+#else
+#error USB audio only supports 1 or 2 channels!
+#endif
+
+#define INPUT_ENABLED CONFIG_AUDIO_USB_INPUT
+#define OUTPUT_ENABLED CONFIG_AUDIO_USB_OUTPUT
+
+#define FRAME_SIZE 448
+
+#define OUT_BUF_SIZE (FRAME_SIZE*2)
+
+#define SYNC_INTERVAL 6
+#define SYNC_SERVO_AMOUNT 0.0001f
+
+#define IN_BUF_SIZE 128
+#define IN_BUF_TARGET (IN_BUF_SIZE/4)
+
+#define INTERFACE_NAME CONFIG_AUDIO_USB_INTERFACE_NAME
+
+#if CONFIG_AUDIO_USB_SAMPLE_FORMAT == f32
+#define FORMAT_TAG 0x0003
+#define SAMPLE_TYPE float
+#define SUBFRAME_SIZE 4
+#define BIT_RESOLUTION 32
+#elif CONFIG_AUDIO_USB_SAMPLE_FORMAT == s24
+#define FORMAT_TAG 0x0001
+#define SAMPLE_TYPE int32_t
+#define SUBFRAME_SIZE 3
+#define BIT_RESOLUTION 24
+#define SCALER (float)INT32_MAX
+#elif CONFIG_AUDIO_USB_SAMPLE_FORMAT == s16
+#define FORMAT_TAG 0x0001
+#define SAMPLE_TYPE int32_t
+#define SUBFRAME_SIZE 2
+#define BIT_RESOLUTION 16
+#define SCALER (float)INT32_MAX
+#else
+#error Unsupported Sample Format!
+#endif
+
+#endif
