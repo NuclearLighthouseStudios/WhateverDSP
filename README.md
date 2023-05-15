@@ -48,8 +48,7 @@ In the meantime, why not check out the [examples repository](https://github.com/
 
 ## Chat
 
-- Discord: [Join link](https://discord.gg/UFeqgzfaba) 
-- IRC: irc.libera.chat `#wdsp`
+[You can chat with us on Discord.](https://discord.gg/WDsFnartXb)
 
 ## V1 Development board
 
