@@ -44,11 +44,12 @@ void wdsp_process(float *in_buffer[BLOCK_SIZE], float *out_buffer[BLOCK_SIZE])
 
 Want to learn more? [We're working on the documentation in the Github wiki](https://github.com/NuclearLighthouseStudios/WhateverDSP/wiki). 
 
-In the meantime, why not check out the [examples repository](https://github.com/NuclearLighthouseStudios/WhateverDSP-Examples) or [come chat with us on IRC](https://github.com/NuclearLighthouseStudios/WhateverDSP#chat).
+In the meantime, why not check out the [examples repository](https://github.com/NuclearLighthouseStudios/WhateverDSP-Examples) or [come chat with us on Discord or IRC](https://github.com/NuclearLighthouseStudios/WhateverDSP#chat).
 
 ## Chat
 
-We have an IRC channel on [libera.chat](https://libera.chat/) called `#wdsp`. 
+- Discord: [Join link](https://discord.gg/UFeqgzfaba) 
+- IRC: irc.libera.chat `#wdsp`
 
 ## V1 Development board
 
