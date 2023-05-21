@@ -5,22 +5,22 @@
 
 #include "system.h"
 #include "io.h"
+#include "bootloader.h"
 
-extern bool _enter_bootloader;
+#include "conf/bootloader.h"
 
-void bootloader_check(io_pin_idx led, io_pin_idx button)
+void bootloader_check(void)
 {
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < BOOTLOADER_TIMEOUT; i++)
 	{
-		io_digital_out(led, true);
+		io_digital_out(BOOTLOADER_LED, true);
 		sys_delay(100);
-		io_digital_out(led, false);
+		io_digital_out(BOOTLOADER_LED, false);
 		sys_delay(100);
 	}
 
-	if (io_digital_in(button) == true)
+	if (io_digital_in(BOOTLOADER_BUTTON) == true)
 	{
-		_enter_bootloader = true;
-		sys_reset();
+		sys_reset(true);
 	}
 }

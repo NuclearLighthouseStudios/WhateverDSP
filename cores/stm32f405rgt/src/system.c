@@ -70,10 +70,12 @@ void sys_enable_fpu(void)
 	SCB->CPACR |= ((3UL << 10 * 2) | (3UL << 11 * 2));
 }
 
-void sys_reset(void)
+void sys_reset(bool enter_bootloader)
 {
+	extern bool _enter_bootloader;
+	_enter_bootloader = enter_bootloader;
 	NVIC_SystemReset();
-	while(true);
+	while (true);
 }
 
 static inline void sys_itm_send_int(unsigned int data, unsigned int port)

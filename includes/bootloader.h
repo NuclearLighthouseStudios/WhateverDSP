@@ -3,6 +3,6 @@
 
 #include "io.h"
 
-extern void bootloader_check(io_pin_idx led, io_pin_idx button);
+extern void bootloader_check(void);
 
 #endif

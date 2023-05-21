@@ -24,7 +24,7 @@ int main(void)
 	sys_init();
 	io_init();
 
-	bootloader_check(LED_1, BUTTON_1);
+	bootloader_check();
 
 #if CONFIG_MODULES_USB == true
 	usb_init();
