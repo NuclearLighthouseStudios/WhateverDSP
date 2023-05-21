@@ -55,129 +55,168 @@ static void send_descriptor(usb_descriptor *desc, size_t length)
 
 static bool handle_device_setup(usb_setup_packet *packet)
 {
-	switch (packet->bRequest)
+	int type = (packet->bmRequestType & 0x60) >> 5;
+
+	switch (type)
 	{
-		// GET_STATUS
+		// Standard requests
 		case 0:
 		{
-			size_t size = sizeof(device_status);
-
-			if (size > packet->wLength)
-				size = packet->wLength;
-
-			usb_transmit((uint8_t *)&device_status, size, setup_in_ep);
-		}
-		break;
-
-		// SET_ADDRESS
-		case 5:
-		{
-			usb_phy_set_address(packet->wValue & 0x7f);
-		}
-		break;
-
-		// GET_DESCRIPTOR
-		case 6:
-		{
-			int type = (packet->wValue >> 8) & 0xFF;
-			int index = packet->wValue & 0xFF;
-
-			switch (type)
+			switch (packet->bRequest)
 			{
-				case 0x01:
+				// GET_STATUS
+				case 0:
 				{
-					send_descriptor((usb_descriptor *)&device_descriptor, packet->wLength);
+					size_t size = sizeof(device_status);
+
+					if (size > packet->wLength)
+						size = packet->wLength;
+
+					usb_transmit((uint8_t *)&device_status, size, setup_in_ep);
 				}
 				break;
 
-				case 0x02:
+				// SET_ADDRESS
+				case 5:
 				{
-					size_t total_length = 0;
-
-					for (int i = 0; i < num_conf_descriptors; i++)
-						total_length += conf_descriptors[i]->bLength;
-
-					configuration_descriptor.wTotalLength = total_length;
-					configuration_descriptor.bNumInterfaces = num_interfaces;
-
-					uint8_t *buf = conf_desc_buffer;
-
-					for (int i = 0; i < num_conf_descriptors; i++)
-					{
-						memcpy(buf, conf_descriptors[i], conf_descriptors[i]->bLength);
-						buf += conf_descriptors[i]->bLength;
-					}
-
-					send_descriptor((usb_descriptor *)conf_desc_buffer, packet->wLength);
+					usb_phy_set_address(packet->wValue & 0x7f);
 				}
 				break;
 
-				case 0x03:
+				// GET_DESCRIPTOR
+				case 6:
 				{
-					static usb_string_descriptor __CCMRAM descriptor;
+					int type = (packet->wValue >> 8) & 0xFF;
+					int index = packet->wValue & 0xFF;
 
-					if (index != 0)
+					switch (type)
 					{
-						if (index > num_string_descriptors)
+						case 0x01:
+						{
+							send_descriptor((usb_descriptor *)&device_descriptor, packet->wLength);
+						}
+						break;
+
+						case 0x02:
+						{
+							size_t total_length = 0;
+
+							for (int i = 0; i < num_conf_descriptors; i++)
+								total_length += conf_descriptors[i]->bLength;
+
+							configuration_descriptor.wTotalLength = total_length;
+							configuration_descriptor.bNumInterfaces = num_interfaces;
+
+							uint8_t *buf = conf_desc_buffer;
+
+							for (int i = 0; i < num_conf_descriptors; i++)
+							{
+								memcpy(buf, conf_descriptors[i], conf_descriptors[i]->bLength);
+								buf += conf_descriptors[i]->bLength;
+							}
+
+							send_descriptor((usb_descriptor *)conf_desc_buffer, packet->wLength);
+						}
+						break;
+
+						case 0x03:
+						{
+							static usb_string_descriptor __CCMRAM descriptor;
+
+							if (index != 0)
+							{
+								if (index > num_string_descriptors)
+									return false;
+
+								char *str = string_descriptors[index - 1];
+
+								if (str == NULL)
+									return false;
+
+								size_t length = strlen(str);
+								if (length > USB_CONFIG_MAX_STR_DESC_LENGTH)
+									length = USB_CONFIG_MAX_STR_DESC_LENGTH;
+
+								descriptor.bDescriptorType = 0x03;
+								descriptor.bLength = length * 2 + 2;
+								for (int i = 0; i < length; i++)
+									descriptor.bString[i] = str[i];
+							}
+							else
+							{
+								descriptor.bDescriptorType = 0x03;
+								descriptor.bLength = 4;
+								descriptor.bString[0] = 0x0409;
+							}
+
+							send_descriptor((usb_descriptor *)&descriptor, packet->wLength);
+						}
+						break;
+
+						default:
+						{
+							error("Unknown descriptor type %d, index %d, length %d\n", type, index, packet->wLength);
 							return false;
-
-						char *str = string_descriptors[index - 1];
-
-						if (str == NULL)
-							return false;
-
-						size_t length = strlen(str);
-						if (length > USB_CONFIG_MAX_STR_DESC_LENGTH)
-							length = USB_CONFIG_MAX_STR_DESC_LENGTH;
-
-						descriptor.bDescriptorType = 0x03;
-						descriptor.bLength = length * 2 + 2;
-						for (int i = 0; i < length; i++)
-							descriptor.bString[i] = str[i];
+						}
 					}
-					else
-					{
-						descriptor.bDescriptorType = 0x03;
-						descriptor.bLength = 4;
-						descriptor.bString[0] = 0x0409;
-					}
+				}
+				break;
 
-					send_descriptor((usb_descriptor *)&descriptor, packet->wLength);
+				// GET_CONFIGURATION
+				case 8:
+				{
+					size_t size = sizeof(configuration);
+
+					if (size > packet->wLength)
+						size = packet->wLength;
+
+					usb_transmit((uint8_t *)&configuration, size, setup_in_ep);
+				}
+				break;
+
+				// SET_CONFIGURATION
+				case 9:
+				{
+					configuration = packet->wValue & 0xff;
+					usb_configure();
 				}
 				break;
 
 				default:
 				{
-					error("Unknown descriptor type %d, index %d, length %d\n", type, index, packet->wLength);
+					error("Unknown request %d\n", packet->bRequest);
 					return false;
 				}
 			}
 		}
 		break;
 
-		// GET_CONFIGURATION
-		case 8:
+		// Vendor specific requests
+		case 2:
 		{
-			size_t size = sizeof(configuration);
+			switch (packet->bRequest)
+			{
+			#ifdef DEBUG
+				// Reboot to bootloader
+				case 0x01:
+				{
+					sys_reset(true);
+				}
+				break;
+			#endif
 
-			if (size > packet->wLength)
-				size = packet->wLength;
-
-			usb_transmit((uint8_t *)&configuration, size, setup_in_ep);
-		}
-		break;
-
-		// SET_CONFIGURATION
-		case 9:
-		{
-			configuration = packet->wValue & 0xff;
-			usb_configure();
+				default:
+				{
+					error("Unknown request %d\n", packet->bRequest);
+					return false;
+				}
+			}
 		}
 		break;
 
 		default:
 		{
-			error("Unknown request %d\n", packet->bRequest);
+			error("Unknown request type %d\n", packet->bRequest);
 			return false;
 		}
 	}
