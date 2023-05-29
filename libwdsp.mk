@@ -30,7 +30,7 @@ include $(WDSP_PATH)/cores/$(CORE)/core.mk
 .DEFAULT_GOAL :=
 
 .PHONY: all
-all: $(TARGET) $(TARGET).bin $(TARGET).hex size
+all: libwdsp $(TARGET) $(TARGET).bin $(TARGET).hex size
 
 .PHONY: size
 size: $(TARGET)
@@ -40,7 +40,6 @@ size: $(TARGET)
 libwdsp:
 	$(MAKE) -C $(WDSP_PATH)
 
-$(TARGET): | libwdsp
 
 $(TARGET).hex: $(TARGET)
 	$(HEX) $< $@
