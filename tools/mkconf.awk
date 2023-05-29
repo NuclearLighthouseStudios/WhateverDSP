@@ -13,7 +13,7 @@ BEGIN {
 		comment = "// %s\n"
 		define = "#define %s %s\n"
 		undef = "#undef %s\n"
-		startif = "#if %s == %s\n"
+		startif = "#ifdef %2$s\n"
 		endif = "#endif\n"
 
 		print "#ifndef CONFIG_H"
@@ -77,6 +77,9 @@ FNR == 1{
 
 	section = toupper(parts[2]) "_"
 	board = parts[1]
+
+	if(mode == "h")
+		gsub("-", "_", board)
 
 	print ""
 	printf comment, "Section " parts[2] " for board " board
