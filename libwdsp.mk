@@ -11,8 +11,8 @@ endif
 WDSP_PATH := $(dir $(lastword $(MAKEFILE_LIST)))
 CONFIG_FILE ?= $(wildcard ./config.ini)
 
-export USER_CONFIG ?= $(abspath $(CONFIG_FILE))
-export BUILD_ROOT ?= $(abspath .wdsp)
+export USER_CONFIG ?= $(shell realpath --relative-to "$(abspath $(WDSP_PATH))" "$(abspath $(CONFIG_FILE))")
+export BUILD_ROOT ?= $(shell realpath --relative-to "$(abspath $(WDSP_PATH))" "$(abspath .wdsp)")
 
 include $(WDSP_PATH)/buildvars.mk
 include $(WDSP_PATH)/init.mk
