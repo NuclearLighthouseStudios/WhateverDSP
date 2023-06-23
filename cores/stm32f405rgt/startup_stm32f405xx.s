@@ -65,8 +65,8 @@ Reset_Handler:
 // Check if the enter bootloader flag was set
 	ldr		r0, =_enter_bootloader
 	ldr		r0, [r0]
-	teq		r0, #0
-	beq		SkipBootloader
+	teq		r0, #1
+	bne		SkipBootloader
 
 // This code jumps to the default bootloader in system memory
 	ldr		r0, =0x1FFF0000
