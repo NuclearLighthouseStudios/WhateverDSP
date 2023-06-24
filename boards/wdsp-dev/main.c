@@ -73,7 +73,7 @@ int main(void)
 		if (sys_ticks != last_idle)
 		{
 			last_idle = sys_ticks;
-			wdsp_idle();
+			wdsp_idle(sys_ticks);
 		}
 
 		sys_idle();
