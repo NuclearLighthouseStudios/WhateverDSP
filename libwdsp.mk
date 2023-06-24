@@ -11,7 +11,7 @@ endif
 WDSP_PATH := $(dir $(lastword $(MAKEFILE_LIST)))
 CONFIG_FILE ?= $(wildcard ./config.ini)
 
-ifdef $(CONFIG_FILE)
+ifneq ($(CONFIG_FILE),)
 export USER_CONFIG ?= $(shell realpath --relative-to "$(abspath $(WDSP_PATH))" "$(abspath $(CONFIG_FILE))")
 endif
 
