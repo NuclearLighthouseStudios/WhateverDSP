@@ -11,7 +11,10 @@ endif
 WDSP_PATH := $(dir $(lastword $(MAKEFILE_LIST)))
 CONFIG_FILE ?= $(wildcard ./config.ini)
 
+ifdef $(CONFIG_FILE)
 export USER_CONFIG ?= $(shell realpath --relative-to "$(abspath $(WDSP_PATH))" "$(abspath $(CONFIG_FILE))")
+endif
+
 export BUILD_ROOT ?= $(shell realpath --relative-to "$(abspath $(WDSP_PATH))" "$(abspath .wdsp)")
 
 include $(WDSP_PATH)/buildvars.mk
@@ -40,6 +43,7 @@ size: $(TARGET)
 libwdsp:
 	$(MAKE) -C $(WDSP_PATH)
 
+$(LIB_NAME).a: libwdsp
 
 $(TARGET).hex: $(TARGET)
 	$(HEX) $< $@
