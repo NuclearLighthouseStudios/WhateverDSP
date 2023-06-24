@@ -4,7 +4,7 @@
 TARGET = template
 
 # This variable sets the board you're compiling your project for.
-# Right now the only option is wdsp-dev for the development board.
+# User wdsp-dev for the dev board and fxdsp for the guitar pedal.
 BOARD = wdsp-dev
 
 # Make sure this path points to the libwdsp.mk file in your WhateverDSP dictory.
