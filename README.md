@@ -26,7 +26,7 @@ Here is what that a simple volume control that scales the audio level using a po
 ```c
 #include <libwdsp.h>
 
-void wdsp_process(float *in_buffer[BLOCK_SIZE], float *out_buffer[BLOCK_SIZE])
+void wdsp_process(float **in_buffer, float **out_buffer)
 {
 	float volume = io_analog_in(POT_1);
 
