@@ -66,7 +66,7 @@ void wdsp_init(void)
  * in_buffer[NUM_CHANNELS][BLOCK_SIZE] and returns it in the same
  * format in out_buffer[NUM_CHANNELS][BLOCK_SIZE].
  */
-void wdsp_process(float **in_buffer, float **out_buffer)
+void wdsp_process(float *in_buffer[], float *out_buffer[])
 {
 	// This example simply copies the input samples into the output buffer.
 	for (int i = 0; i < BLOCK_SIZE; i++)

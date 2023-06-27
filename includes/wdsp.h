@@ -4,7 +4,7 @@
 #include "conf/wdsp.h"
 
 extern void wdsp_init(void);
-extern void wdsp_process(float **in_buffer, float **out_buffer);
+extern void wdsp_process(float *in_buffer[], float *out_buffer[]);
 extern void wdsp_idle(unsigned long int ticks);
 
 #endif

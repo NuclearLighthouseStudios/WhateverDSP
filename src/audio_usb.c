@@ -268,7 +268,7 @@ static void out_stop(usb_out_endpoint *ep)
  * and transfers NUM_USB_CHANNELS of them into the USB transmit buffer
  * after converting them into the proper USB sample format.
  ******************************************************************************/
-void audio_usb_out(float *buffer[BLOCK_SIZE])
+void audio_usb_out(float *buffer[])
 {
 #if OUTPUT_ENABLED == true
 	if ((!in_active) || (in_alt_setting == 0))
@@ -308,7 +308,7 @@ void audio_usb_out(float *buffer[BLOCK_SIZE])
  * audio buffers after converting them back from the USB sample format.
  * There need to be at least NUM_USB_CHANNELS buffers to write into.
  ******************************************************************************/
-void audio_usb_in(float *buffer[BLOCK_SIZE])
+void audio_usb_in(float *buffer[])
 {
 #if INPUT_ENABLED == true
 	if ((!out_active) || (out_alt_setting == 0))
