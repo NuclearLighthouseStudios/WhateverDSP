@@ -4,21 +4,22 @@
 export OPT ?= -O3
 export DEBUG ?= false
 export BOARD ?= wdsp-dev
-export BUILD_ROOT ?= build
+
+BUILD_ROOT ?= build
 
 ifeq ($(DEBUG), true)
-export BUILD_DIR ?= $(BUILD_ROOT)/debug/$(BOARD)
+BUILD_DIR = $(BUILD_ROOT)/debug/$(BOARD)
 else
-export BUILD_DIR ?= $(BUILD_ROOT)/release/$(BOARD)
+BUILD_DIR = $(BUILD_ROOT)/release/$(BOARD)
 endif
 
 ifeq ($(DEBUG), true)
-export LIB_NAME ?= $(BUILD_ROOT)/libwdsp-$(BOARD)-debug
+LIB_NAME = $(BUILD_ROOT)/libwdsp-$(BOARD)-debug
 else
-export LIB_NAME ?= $(BUILD_ROOT)/libwdsp-$(BOARD)
+LIB_NAME = $(BUILD_ROOT)/libwdsp-$(BOARD)
 endif
 
-export CONFIG_DIR = $(BUILD_DIR)/config
+CONFIG_DIR = $(BUILD_DIR)/config
 
 #######################################
 # binaries

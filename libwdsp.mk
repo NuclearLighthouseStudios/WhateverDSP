@@ -10,12 +10,13 @@ endif
 
 WDSP_PATH := $(dir $(lastword $(MAKEFILE_LIST)))
 CONFIG_FILE ?= $(wildcard ./config.ini)
+BUILD_ROOT ?= .wdsp
 
 ifneq ($(CONFIG_FILE),)
-export USER_CONFIG ?= $(shell realpath --relative-to "$(abspath $(WDSP_PATH))" "$(abspath $(CONFIG_FILE))")
+export USER_CONFIG = $(shell realpath --relative-to "$(abspath $(WDSP_PATH))" "$(abspath $(CONFIG_FILE))")
 endif
 
-export BUILD_ROOT ?= $(shell realpath --relative-to "$(abspath $(WDSP_PATH))" "$(abspath .wdsp)")
+LIB_BUILD_ROOT := $(shell realpath --relative-to "$(abspath $(WDSP_PATH))" "$(abspath $(BUILD_ROOT))")
 
 include $(WDSP_PATH)/buildvars.mk
 include $(WDSP_PATH)/init.mk
@@ -40,6 +41,7 @@ size: $(TARGET)
 	$(SZ) $<
 
 .PHONY: libwdsp
+libwdsp: export BUILD_ROOT = $(LIB_BUILD_ROOT)
 libwdsp:
 	$(MAKE) -C $(WDSP_PATH)
 
