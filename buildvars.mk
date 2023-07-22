@@ -61,7 +61,7 @@ C_DEFS += -D$(subst -,_,$(BOARD))
 # gcc flags
 ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -Werror -fdata-sections -ffunction-sections
 CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -Werror -ffast-math -fdata-sections -ffunction-sections
-CXXFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(CXX_INCLUDES) $(OPT) -Wall -Werror -ffast-math -fdata-sections -ffunction-sections
+CXXFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(CXX_INCLUDES) $(OPT) -Wall -Werror -ffast-math -fno-exceptions -fdata-sections -ffunction-sections
 
 # Always add debugging symbols
 CFLAGS += -g -gdwarf-2
