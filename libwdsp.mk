@@ -56,6 +56,7 @@ $(TARGET).bin: $(TARGET)
 $(TARGET): $(LIB_NAME).a
 
 .PHONY: libclean
+libclean: export BUILD_ROOT = $(LIB_BUILD_ROOT)
 libclean:
 	$(MAKE) -C $(WDSP_PATH) clean
 	rm -f $(TARGET) $(TARGET).bin $(TARGET).hex $(TARGET).map
