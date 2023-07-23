@@ -55,7 +55,7 @@ static usb_audio_output_terminal_descriptor __CCMRAM usb_output_terminal = USB_A
 // Same as for the output terminals, but this time there is a USB input terminal
 // and an audio output terminal.
 static usb_audio_input_terminal_descriptor __CCMRAM usb_input_terminal = USB_AUDIO_INPUT_TERMINAL_DESCRIPTOR_INIT(3, 0x0101, NUM_USB_CHANNELS, USB_CHANNEL_CONFIG);
-static usb_audio_output_terminal_descriptor __CCMRAM audio_output_terminal = USB_AUDIO_OUTPUT_TERMINAL_DESCRIPTOR_INIT(4, 0x0301, 1);
+static usb_audio_output_terminal_descriptor __CCMRAM audio_output_terminal = USB_AUDIO_OUTPUT_TERMINAL_DESCRIPTOR_INIT(4, 0x0301, 3);
 #endif
 
 #if OUTPUT_ENABLED == true
