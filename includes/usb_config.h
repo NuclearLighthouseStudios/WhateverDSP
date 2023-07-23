@@ -161,7 +161,7 @@ typedef struct __PACKED
 
 #define USB_ENDPOINT_DESCRIPTOR_INIT_BULK(endpoint_address, max_packet_size)\
 (usb_endpoint_descriptor){\
-	.bLength = 7,\
+	.bLength = 9,\
 	.bDescriptorType = 0x05,\
 \
 	.bEndpointAddress = endpoint_address,\

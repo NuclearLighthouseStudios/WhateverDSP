@@ -24,13 +24,13 @@ typedef struct __PACKED
 
 #define USB_MIDI_HEADER_DESCRIPTOR_INIT()\
 (usb_midi_header_descriptor){\
-	.bLength = 9,\
+	.bLength = 7,\
 	.bDescriptorType = 0x24,\
 	.bDescriptorSubtype = 0x01,\
 \
 	.bcdADC = 0x0100,\
 \
-	.wTotalLength = 9,\
+	.wTotalLength = 7,\
 }
 
 typedef struct __PACKED
