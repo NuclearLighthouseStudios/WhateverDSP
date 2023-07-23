@@ -535,7 +535,7 @@ void audio_usb_init(void)
 
 	// In addition to the data endpoint this interface also has a synch endpoint
 	// to inform the host about out effective sample rate
-	synch_endpoint_desc = USB_ENDPOINT_DESCRIPTOR_INIT_SYNCH(synch_in_ep->epnum | 0x80, 0b00, 0b01, SYNC_INTERVAL, synch_in_ep->max_packet_size);
+	synch_endpoint_desc = USB_ENDPOINT_DESCRIPTOR_INIT_SYNCH(synch_in_ep->epnum | 0x80, 0b00, 0b00, SYNC_INTERVAL, synch_in_ep->max_packet_size);
 	usb_config_add_descriptor((usb_descriptor *)&synch_endpoint_desc);
 #endif
 
