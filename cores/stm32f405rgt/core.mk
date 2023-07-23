@@ -17,11 +17,11 @@ LDSCRIPT = $(WDSP_PATH)/cores/$(CORE)/STM32F405RGTx_FLASH.ld
 ifdef WDSP_PATH
 
 .PHONY: flash
-flash: $(TARGET).hex
+flash: all
 	st-flash --opt --reset --connect-under-reset --format ihex write $(TARGET).hex
 
 .PHONY: dfu
-dfu: $(TARGET).bin
+dfu: all
 	dfu-util -d 0483:df11,0483:df11 -a 0 -c 1 -s 0x08000000:leave -D $(TARGET).bin
 
 endif
