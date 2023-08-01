@@ -22,6 +22,6 @@ flash: all
 
 .PHONY: dfu
 dfu: all
-	dfu-util -d 0483:df11,0483:df11 -a 0 -c 1 -s 0x08000000:leave -D $(TARGET).bin
+	dfu-util -d dead:c0de,0483:df11 -a 0 -c 1 -s 0x08000000:leave -D $(TARGET).bin
 
 endif

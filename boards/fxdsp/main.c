@@ -29,6 +29,7 @@ int main(void)
 #if CONFIG_MODULES_USB == true
 	usb_init();
 	usb_config_init();
+	bootloader_usb_init();
 #if ((CONFIG_MODULES_MIDI == true) && (CONFIG_MIDI_USB == true)) || (CONFIG_AUDIO_USB == true)
 	usb_uac_init();
 #endif

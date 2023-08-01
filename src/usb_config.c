@@ -196,15 +196,6 @@ static bool handle_device_setup(usb_setup_packet *packet)
 		{
 			switch (packet->bRequest)
 			{
-			#ifdef DEBUG
-				// Reboot to bootloader
-				case 0x01:
-				{
-					sys_reset(true);
-				}
-				break;
-			#endif
-
 				default:
 				{
 					error("Unknown request %d\n", packet->bRequest);
