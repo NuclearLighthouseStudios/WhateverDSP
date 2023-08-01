@@ -31,12 +31,6 @@ typedef struct __PACKED
 	.BaInterfaceNr = {0},\
 }
 
-static inline usb_uac_header_descriptor usb_uac_header_init(void)
-{
-	usb_uac_header_descriptor foo = { .bLength = 66 };
-	return foo;
-}
-
 extern void usb_uac_init(void);
 
 extern void usb_uac_add_interface(usb_interface_descriptor *interface);
