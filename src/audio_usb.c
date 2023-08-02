@@ -156,9 +156,10 @@ static void eof_callback(void)
 			num_frames = 0;
 			num_samples = 0;
 			in_buf_fill = 0;
+
+			usb_transmit((uint8_t *)&sync_sample_rate, 3, synch_in_ep);
 		}
 
-		usb_transmit((uint8_t *)&sync_sample_rate, 3, synch_in_ep);
 		usb_receive((uint8_t *)(rx_buf), FRAME_SIZE, audio_out_ep);
 	}
 #endif
