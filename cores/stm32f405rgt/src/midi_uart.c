@@ -7,6 +7,8 @@
 #include "core.h"
 #include "board.h"
 
+#include "system.h"
+
 #include "midi.h"
 #include "midi_uart.h"
 
@@ -133,13 +135,17 @@ void MIDI_UART_IRQ_HANDLER(void)
 		CLEAR_BIT(MIDI_UART->SR, USART_SR_RXNE);
 		CLEAR_BIT(MIDI_UART->SR, USART_SR_ORE);
 
+		// TODO: Use DMA here or schedule it to happen outside of the IRQ!
+		// This call, and the subsequent call to midi_receive could cause
+		// memory corruption when another midi interface gets interrupted during
+		// it's call to midi_receive.
 		midi_uart_receive(MIDI_UART->DR);
 	}
 
 	if (READ_BIT(MIDI_UART->SR, USART_SR_TC))
 	{
 		CLEAR_BIT(MIDI_UART->SR, USART_SR_TC);
-		midi_transmit();
+		sys_schedule(&midi_transmit);
 	}
 }
 
