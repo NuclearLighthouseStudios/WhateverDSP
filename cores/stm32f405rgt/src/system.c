@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdnoreturn.h>
 
 #include "stm32f4xx.h"
 
@@ -70,12 +71,11 @@ void sys_enable_fpu(void)
 	SCB->CPACR |= ((3UL << 10 * 2) | (3UL << 11 * 2));
 }
 
-void sys_reset(bool enter_bootloader)
+noreturn void sys_reset(bool enter_bootloader)
 {
 	extern bool _enter_bootloader;
 	_enter_bootloader = enter_bootloader;
 	NVIC_SystemReset();
-	while (true);
 }
 
 static inline void sys_itm_send_int(unsigned int data, unsigned int port)
@@ -125,10 +125,14 @@ int _write(int file, char *ptr, int len)
 
 void _exit(int status)
 {
+#ifdef DEBUG
 	__disable_irq();
 	__BKPT(0);
 	for (;;)
 		__WFI();
+#else
+	sys_reset(false);
+#endif
 }
 
 void sys_delay(unsigned long int delay)
