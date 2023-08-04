@@ -49,7 +49,7 @@ static int midi_interface_num __CCMRAM = 0;
 static void tx_callback(usb_in_endpoint *ep, size_t count)
 {
 	tx_ready = true;
-	midi_transmit();
+	sys_schedule(&midi_transmit);
 }
 
 static void rx_callback(usb_out_endpoint *ep, uint8_t *rx_buf, size_t count)
