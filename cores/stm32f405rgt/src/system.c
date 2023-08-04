@@ -156,31 +156,39 @@ char *sys_get_serial(void)
 
 void sys_busy(volatile bool *flag)
 {
+	__disable_irq();
+
 	for (int i = 0; i < MAX_BUSY_FLAGS; i++)
 	{
 		if ((!busy_flags[i]) || (busy_flags[i] == flag))
 		{
 			busy_flags[i] = flag;
 			__SEV();
+			__enable_irq();
 			return;
 		}
 	}
 
+	__enable_irq();
 	error("Exceeded maximum number of busy flags!\n");
 }
 
 void sys_schedule(sys_schedulable_func func)
 {
+	__disable_irq();
+
 	for (int i = 0; i < MAX_SCHEDULED_CALLS; i++)
 	{
 		if ((!scheduled_calls[i]) || (scheduled_calls[i] == func))
 		{
 			scheduled_calls[i] = func;
 			__SEV();
+			__enable_irq();
 			return;
 		}
 	}
 
+	__enable_irq();
 	error("Exceeded maximum number of scheduled calls!\n");
 }
 
